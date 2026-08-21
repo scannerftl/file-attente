@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Écran mural — File d'attente</title>
+  <link rel="stylesheet" href="/shared/style.css" />
+  <link rel="stylesheet" href="/mural/mural.css" />
+</head>
+<body class="mural">
+  <div class="mural-cadre">
+    <header class="mural-entete">ÉCRAN MURAL — hall</header>
+
+    <div class="appel-courant">
+      <div id="num-courant" class="num-courant">—</div>
+      <div id="guichet-courant" class="guichet-courant">En attente d'appel</div>
+    </div>
+
+    <section class="recents">
+      <h2>Appels récents</h2>
+      <ul id="recents"></ul>
+    </section>
+
+    <p class="maj-note">mise à jour instantanée (patron Observateur)</p>
+  </div>
+
+  <span id="badge" class="badge-connexion">•</span>
+  <script src="/shared/api.js"></script>
+  <script src="/mural/mural.js"></script>
+</body>
+</html>

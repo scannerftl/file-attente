@@ -1,0 +1,58 @@
+/* IHM Écran mural (maquette 4.1, colonne droite).
+   Contrainte 4.2 : numéro lisible à 10 m → police maximale, fort contraste. */
+body.mural {
+  background: #06100f;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mural-cadre {
+  width: min(1100px, 96vw);
+  background: #0a1a19;
+  border-radius: 18px;
+  padding: 30px 40px 22px;
+  color: #e2e8f0;
+  box-shadow: var(--ombre);
+}
+
+.mural-entete {
+  text-align: center;
+  color: #5eead4;
+  letter-spacing: .12em;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.appel-courant {
+  text-align: center;
+  padding: 24px 0 34px;
+  border-bottom: 1px solid #163a37;
+}
+.num-courant {
+  font-size: clamp(90px, 22vw, 240px);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--vert);
+  font-variant-numeric: tabular-nums;
+}
+.num-courant.flash { animation: flash 1s ease; }
+@keyframes flash {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.12); color: #99f6e4; }
+  100% { transform: scale(1); }
+}
+.guichet-courant { font-size: clamp(24px, 5vw, 48px); font-weight: 700; margin-top: 10px; }
+
+.recents { margin-top: 22px; }
+.recents h2 { color: #94a3b8; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
+.recents ul { list-style: none; margin: 0; padding: 0; }
+.recents li {
+  display: flex; justify-content: space-between;
+  padding: 12px 6px; border-bottom: 1px solid #12302e;
+  font-size: clamp(20px, 3vw, 30px); font-variant-numeric: tabular-nums;
+}
+.recents li .g { color: #5eead4; font-weight: 700; }
+
+.maj-note { text-align: center; color: #475569; font-size: 12px; font-style: italic; margin: 16px 0 0; }

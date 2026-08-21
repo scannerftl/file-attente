@@ -1,0 +1,10 @@
+node_modules/
+server/db/*.sqlite
+server/db/*.sqlite-*
+*.log
+
+# Env secrets
+.env
+.env.local
+*.kate-swp
+*.swp

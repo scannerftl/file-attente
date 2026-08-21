@@ -1,0 +1,84 @@
+/* =====================================================================
+   Feuille de style commune aux 3 IHM.
+   Charte reprise des maquettes (Partie 4) : vert sarcelle, fond sombre.
+   ===================================================================== */
+:root {
+  --vert: #14b8a6;
+  --vert-fonce: #0f766e;
+  --vert-sombre: #134e4a;
+  --encre: #0f2b2b;
+  --gris: #64748b;
+  --gris-clair: #e2e8f0;
+  --blanc: #ffffff;
+  --ombre: 0 10px 30px rgba(0, 0, 0, 0.18);
+  --rayon: 14px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--encre);
+  background: #f1f5f9;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+.badge-connexion {
+  position: fixed;
+  top: 10px;
+  right: 12px;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: var(--gris);
+}
+.badge-connexion.ok { background: #ccfbf1; color: var(--vert-fonce); }
+.badge-connexion.ko { background: #fee2e2; color: #b91c1c; }
+
+/* Bandeau de configuration (poste agent) */
+.config-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--encre);
+  color: var(--gris-clair);
+  font-size: 14px;
+}
+.config-bar select, .config-bar input {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #0b1f1f;
+  color: #e2e8f0;
+}
+
+/* Page d'accueil (choix de l'IHM) */
+.accueil {
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+.accueil h1 { color: var(--vert-fonce); }
+.cartes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.carte {
+  display: block;
+  text-decoration: none;
+  color: var(--encre);
+  background: var(--blanc);
+  border-radius: var(--rayon);
+  padding: 24px;
+  box-shadow: var(--ombre);
+  border-top: 4px solid var(--vert);
+  transition: transform .12s ease;
+}
+.carte:hover { transform: translateY(-3px); }
+.carte h2 { margin: 0 0 6px; }
+.carte p { margin: 0; color: var(--gris); font-size: 14px; }

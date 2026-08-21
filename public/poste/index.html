@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Poste agent — File d'attente</title>
+  <link rel="stylesheet" href="/shared/style.css" />
+  <link rel="stylesheet" href="/poste/poste.css" />
+</head>
+<body class="poste">
+  <!-- Le poste est rattaché à un agent + un guichet (contexte du poste). -->
+  <div class="config-bar">
+    <label>Agent
+      <select id="sel-agent"></select>
+    </label>
+    <label>Guichet
+      <select id="sel-guichet"></select>
+    </label>
+    <span id="nom-agent" class="nom-agent"></span>
+  </div>
+
+  <main class="poste-cadre">
+    <header class="poste-entete">POSTE AGENT — <span id="titre-guichet">Guichet ?</span></header>
+
+    <section class="bloc">
+      <h2>File en attente (mes services)</h2>
+      <ul id="file" class="file"><!-- lignes injectées --></ul>
+      <p id="file-vide" class="vide cachee">Aucun ticket en attente.</p>
+    </section>
+
+    <section class="bloc">
+      <h2>En cours</h2>
+      <div id="en-cours" class="en-cours vide">Aucun ticket en cours</div>
+      <button id="btn-cloturer" class="btn-cloturer" disabled>Clôturer le ticket</button>
+    </section>
+
+    <button id="btn-appeler" class="btn-appeler">APPELER LE SUIVANT</button>
+    <p id="message" class="message"></p>
+  </main>
+
+  <span id="badge" class="badge-connexion">•</span>
+  <script src="/shared/api.js"></script>
+  <script src="/poste/poste.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+/* IHM Borne — plein écran kiosque, gros boutons tactiles (maquette 4.1). */
+body.borne {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 10%, #1b3a3a, #0b1f1f);
+}
+
+.borne-cadre {
+  width: 420px;
+  max-width: 92vw;
+  background: var(--blanc);
+  border-radius: 22px;
+  box-shadow: var(--ombre);
+  overflow: hidden;
+  border: 6px solid #0b1f1f;
+}
+
+.borne-entete {
+  background: var(--vert-sombre);
+  color: #99f6e4;
+  text-align: center;
+  padding: 10px;
+  font-size: 13px;
+  letter-spacing: .08em;
+}
+
+.borne-vue { padding: 28px 26px 34px; text-align: center; }
+.borne-vue.cachee { display: none; }
+.borne-vue h1 { margin: 6px 0 22px; font-size: 28px; }
+
+.services { display: flex; flex-direction: column; gap: 16px; }
+.services button {
+  padding: 22px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--blanc);
+  background: var(--vert);
+  border-radius: 12px;
+  transition: transform .08s ease, background .12s ease;
+}
+.services button:nth-child(2) { background: var(--vert-fonce); }
+.services button:nth-child(3) { background: var(--vert-sombre); }
+.services button:active { transform: scale(.97); }
+
+.borne-aide { color: var(--gris); font-size: 14px; margin-top: 22px; }
+
+.ticket-impression {
+  border: 2px dashed var(--gris);
+  border-radius: 12px;
+  padding: 26px;
+  margin: 10px 0;
+}
+.ticket-num { font-size: 72px; font-weight: 800; color: var(--vert-fonce); line-height: 1; }
+.ticket-svc { font-size: 22px; margin-top: 8px; }
+.ticket-info { color: var(--gris); margin-top: 14px; font-size: 14px; }

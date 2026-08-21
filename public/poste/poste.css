@@ -1,0 +1,58 @@
+/* IHM Poste agent (maquette 4.1, colonne centrale). */
+body.poste { background: #f1f5f9; }
+.nom-agent { margin-left: auto; color: #99f6e4; font-weight: 600; }
+
+.poste-cadre {
+  max-width: 460px;
+  margin: 24px auto;
+  background: var(--blanc);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  overflow: hidden;
+}
+.poste-entete {
+  background: var(--vert-fonce);
+  color: var(--blanc);
+  padding: 14px 18px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.bloc { padding: 16px 18px; border-bottom: 1px solid #eef2f7; }
+.bloc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--gris); margin: 0 0 10px; }
+
+.file { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.file li {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px; border: 1px solid var(--gris-clair); border-radius: 10px;
+}
+.file li .num { font-weight: 700; color: var(--encre); }
+.file li .svc { color: var(--gris); font-size: 14px; margin-left: 10px; flex: 1; }
+.file li .heure { color: var(--gris); font-variant-numeric: tabular-nums; }
+.vide { color: var(--gris); font-style: italic; }
+.cachee { display: none; }
+
+.en-cours {
+  border: 2px solid var(--vert);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+}
+.en-cours.vide { border-style: dashed; border-color: var(--gris-clair); color: var(--gris); font-weight: 400; font-size: 15px; }
+
+.btn-cloturer {
+  margin-top: 12px; width: 100%; padding: 12px;
+  background: #e2e8f0; color: var(--encre); border-radius: 10px; font-weight: 600;
+}
+.btn-cloturer:not(:disabled) { background: var(--encre); color: var(--blanc); }
+.btn-cloturer:disabled { opacity: .6; cursor: not-allowed; }
+
+.btn-appeler {
+  display: block; width: calc(100% - 36px); margin: 18px; padding: 20px;
+  background: var(--vert); color: var(--blanc); font-size: 20px; font-weight: 800;
+  border-radius: 12px; letter-spacing: .03em;
+}
+.btn-appeler:active { transform: scale(.99); }
+.message { text-align: center; color: var(--gris); min-height: 20px; margin: 0 0 16px; }
+.message.alerte { color: #b45309; font-weight: 600; }

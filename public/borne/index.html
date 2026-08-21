@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Borne — File d'attente</title>
+  <link rel="stylesheet" href="/shared/style.css" />
+  <link rel="stylesheet" href="/borne/borne.css" />
+</head>
+<body class="borne">
+  <div class="borne-cadre">
+    <header class="borne-entete">BORNE — écran tactile</header>
+
+    <!-- Vue 1 : choix du service -->
+    <section id="vue-accueil" class="borne-vue">
+      <h1>Bienvenue</h1>
+      <div id="services" class="services"><!-- boutons injectés --></div>
+      <p class="borne-aide">Touchez le service souhaité</p>
+    </section>
+
+    <!-- Vue 2 : confirmation + impression (retour auto après 5 s) -->
+    <section id="vue-ticket" class="borne-vue cachee">
+      <h1>Votre ticket</h1>
+      <div class="ticket-impression">
+        <div class="ticket-num" id="ticket-num">000</div>
+        <div class="ticket-svc" id="ticket-svc">—</div>
+        <div class="ticket-info">Merci de patienter, vous serez appelé à l'écran.</div>
+      </div>
+      <p class="borne-aide">Impression du ticket… retour à l'accueil dans <span id="compte">5</span> s</p>
+    </section>
+  </div>
+
+  <span id="badge" class="badge-connexion">•</span>
+  <script src="/shared/api.js"></script>
+  <script src="/borne/borne.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "file-attente",
+  "version": "1.0.0",
+  "description": "Système de file d'attente d'agence — implémentation du dossier de conception (Phase 2). Architecture 3 couches : présentation (borne / poste agent / écran mural), métier (Node.js), données (DAO + SQLite).",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "init-db": "node server/db/init-db.js",
+    "test": "node --test test/recette.test.js",
+    "test:mysql": "node test/mysql-smoke.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^9.6.0",
+    "mysql2": "^3.11.0"
+  },
+  "license": "MIT"
+}
