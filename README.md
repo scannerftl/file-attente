@@ -37,7 +37,12 @@ fidèlement les modèles (MCT/MOT, diagramme de classes, séquences, états, con
 
 ## 🖼️ Aperçu
 
-**Écran mural** — affichage du hall, actualisé en temps réel (patron Observateur) :
+**Temps réel (patron Observateur)** — un ticket pris à la borne s'affiche instantanément
+sur l'écran mural dès que l'agent l'appelle, via WebSocket :
+
+![Push temps réel borne → mural](docs/screenshots/demo-temps-reel.gif)
+
+**Écran mural** — affichage du hall, actualisé en temps réel :
 
 ![Écran mural](docs/screenshots/mural.png)
 
