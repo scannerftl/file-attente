@@ -35,6 +35,20 @@ fidèlement les modèles (MCT/MOT, diagramme de classes, séquences, états, con
 | 👩‍💼 **Poste agent** | `/poste/` | L'agent (avec son guichet) appelle le suivant et clôture les tickets |
 | 📺 **Écran mural** | `/mural/` | Affiche les tickets appelés, actualisé en temps réel |
 
+## 🖼️ Aperçu
+
+**Écran mural** — affichage du hall, actualisé en temps réel (patron Observateur) :
+
+![Écran mural](docs/screenshots/mural.png)
+
+| 🎟️ Borne (prise de ticket) | 👩‍💼 Poste agent (file + appel) |
+| --- | --- |
+| ![Borne](docs/screenshots/borne.png) | ![Poste agent](docs/screenshots/poste.png) |
+
+**Accueil** — choix de l'interface à ouvrir :
+
+![Accueil](docs/screenshots/accueil.png)
+
 ## 🚀 Démarrage rapide
 
 ```bash
