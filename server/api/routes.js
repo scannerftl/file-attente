@@ -43,6 +43,84 @@ function creerRoutes(ctx) {
     res.json(guichets.map((g) => g.versJSON()));
   }));
 
+  // --- Admin CRUD : Services ---
+  r.post('/services', geree(async (req, res) => {
+    const { code, libelle, dureeCible } = req.body || {};
+    if (!code || !libelle) return res.status(400).json({ erreur: 'code et libelle requis' });
+    await dao.serviceDAO.creer(code, libelle, dureeCible || 5);
+    res.status(201).json({ ok: true });
+  }));
+
+  r.put('/services/:code', geree(async (req, res) => {
+    const { libelle, dureeCible } = req.body || {};
+    await dao.serviceDAO.modifier(req.params.code, libelle, dureeCible);
+    res.json({ ok: true });
+  }));
+
+  r.delete('/services/:code', geree(async (req, res) => {
+    try {
+      await dao.serviceDAO.supprimer(req.params.code);
+      res.json({ ok: true });
+    } catch (e) {
+      if (e.message.includes('FOREIGN KEY') || e.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' || e.errno === 1451) {
+        return res.status(400).json({ erreur: 'Impossible de supprimer ce service car des données (tickets/stats) y sont liées.' });
+      }
+      throw e;
+    }
+  }));
+
+  // --- Admin CRUD : Agents ---
+  r.post('/agents', geree(async (req, res) => {
+    const { matricule, nom } = req.body || {};
+    if (!matricule || !nom) return res.status(400).json({ erreur: 'matricule et nom requis' });
+    await dao.agentDAO.creer(matricule, nom);
+    res.status(201).json({ ok: true });
+  }));
+
+  r.put('/agents/:matricule', geree(async (req, res) => {
+    const { nom } = req.body || {};
+    await dao.agentDAO.modifier(req.params.matricule, nom);
+    res.json({ ok: true });
+  }));
+
+  r.delete('/agents/:matricule', geree(async (req, res) => {
+    try {
+      await dao.agentDAO.supprimer(req.params.matricule);
+      res.json({ ok: true });
+    } catch (e) {
+      if (e.message.includes('FOREIGN KEY') || e.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' || e.errno === 1451) {
+        return res.status(400).json({ erreur: 'Impossible de supprimer cet agent car des données y sont liées.' });
+      }
+      throw e;
+    }
+  }));
+
+  // --- Admin CRUD : Guichets ---
+  r.post('/guichets', geree(async (req, res) => {
+    const { numero, etat } = req.body || {};
+    if (!numero) return res.status(400).json({ erreur: 'numero requis' });
+    await dao.guichetDAO.creer(numero, etat || 'ouvert');
+    res.status(201).json({ ok: true });
+  }));
+
+  r.put('/guichets/:numero', geree(async (req, res) => {
+    const { etat } = req.body || {};
+    await dao.guichetDAO.modifier(req.params.numero, etat);
+    res.json({ ok: true });
+  }));
+
+  r.delete('/guichets/:numero', geree(async (req, res) => {
+    try {
+      await dao.guichetDAO.supprimer(req.params.numero);
+      res.json({ ok: true });
+    } catch (e) {
+      if (e.message.includes('FOREIGN KEY') || e.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' || e.errno === 1451) {
+        return res.status(400).json({ erreur: 'Impossible de supprimer ce guichet car des tickets y sont liés.' });
+      }
+      throw e;
+    }
+  }));
+
   // --- BORNE : prendre un ticket (opération 6.1 prendreTicket) ---
   r.post('/tickets', geree(async (req, res) => {
     const { codeService } = req.body || {};

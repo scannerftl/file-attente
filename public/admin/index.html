@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Administration — File d'attente</title>
+  <link rel="stylesheet" href="/shared/style.css" />
+  <link rel="stylesheet" href="/admin/admin.css" />
+</head>
+<body class="admin">
+  <div class="admin-cadre glass">
+    <header class="admin-entete">
+      <h2>⚙️ Tableau de Bord</h2>
+      <a href="/" class="btn-retour">Retour à l'accueil</a>
+    </header>
+
+    <main class="admin-content">
+      <section class="admin-section stats-section">
+        <div class="section-header">
+          <h3>Statistiques Journalières</h3>
+          <div class="date-picker">
+            <label for="date-stats">Date :</label>
+            <input type="date" id="date-stats" />
+            <button id="btn-charger" class="btn-primary">Charger</button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Tickets traités</th>
+                <th>Attente Moyenne</th>
+                <th>Traitement Moyen</th>
+              </tr>
+            </thead>
+            <tbody id="stats-body">
+              <tr><td colspan="4" class="empty-state">Chargement des statistiques...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-section crud-section">
+        <h3>Gestion du Référentiel</h3>
+        <p class="crud-desc">Gérez les éléments de l'agence. (CRUD : Créer, Lire, Mettre à jour, Supprimer)</p>
+        <div class="crud-grid">
+          <!-- Services -->
+          <div class="crud-card glass">
+            <div class="crud-header">
+              <h4>Services</h4>
+              <button id="btn-add-service" class="btn-small">Ajouter</button>
+            </div>
+            <ul id="list-services" class="crud-list"></ul>
+          </div>
+          
+          <!-- Agents -->
+          <div class="crud-card glass">
+            <div class="crud-header">
+              <h4>Agents</h4>
+              <button id="btn-add-agent" class="btn-small">Ajouter</button>
+            </div>
+            <ul id="list-agents" class="crud-list"></ul>
+          </div>
+          
+          <!-- Guichets -->
+          <div class="crud-card glass">
+            <div class="crud-header">
+              <h4>Guichets</h4>
+              <button id="btn-add-guichet" class="btn-small">Ajouter</button>
+            </div>
+            <ul id="list-guichets" class="crud-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-section actions-section">
+        <h3>Actions Manuelles</h3>
+        <div class="action-card glass">
+          <div class="action-info">
+            <h4>Purger les abandons</h4>
+            <p>Marque comme "abandonnés" les tickets appelés depuis plus de X minutes sans avoir été clôturés.</p>
+          </div>
+          <div class="action-controls">
+            <label>Délai (min) : <input type="number" id="delai-abandon" value="5" min="1" max="60"></label>
+            <button id="btn-purge" class="btn-danger">Lancer la purge</button>
+          </div>
+        </div>
+        <p id="action-message" class="action-message"></p>
+      </section>
+    </main>
+  </div>
+
+  <script src="/shared/api.js"></script>
+  <script src="/admin/admin.js"></script>
+</body>
+</html>

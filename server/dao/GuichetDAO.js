@@ -22,6 +22,18 @@ class GuichetDAO {
     const g = await this.trouver(numero);
     return !!g && g.estOuvert();
   }
+
+  async creer(numero, etat = 'ouvert') {
+    await this.cnx.run('INSERT INTO Guichet (numero, etat) VALUES (?, ?)', [numero, etat]);
+  }
+
+  async modifier(numero, etat) {
+    await this.cnx.run('UPDATE Guichet SET etat = ? WHERE numero = ?', [etat, numero]);
+  }
+
+  async supprimer(numero) {
+    await this.cnx.run('DELETE FROM Guichet WHERE numero = ?', [numero]);
+  }
 }
 
 module.exports = GuichetDAO;
