@@ -1,84 +1,183 @@
-/* =====================================================================
-   Feuille de style commune aux 3 IHM.
-   Charte reprise des maquettes (Partie 4) : vert sarcelle, fond sombre.
-   ===================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 :root {
-  --vert: #14b8a6;
-  --vert-fonce: #0f766e;
-  --vert-sombre: #134e4a;
-  --encre: #0f2b2b;
-  --gris: #64748b;
-  --gris-clair: #e2e8f0;
-  --blanc: #ffffff;
-  --ombre: 0 10px 30px rgba(0, 0, 0, 0.18);
-  --rayon: 14px;
+  /* Modern Dark Theme Palette */
+  --bg-color: #0f172a; /* Slate 900 */
+  --surface: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity for glassmorphism */
+  --surface-hover: rgba(51, 65, 85, 0.8);
+  --border-color: rgba(255, 255, 255, 0.1);
+  
+  /* Accents */
+  --primary: #14b8a6; /* Teal 500 */
+  --primary-hover: #0d9488; /* Teal 600 */
+  --primary-glow: rgba(20, 184, 166, 0.4);
+  
+  --secondary: #3b82f6; /* Blue 500 */
+  --accent-gradient: linear-gradient(135deg, #14b8a6 0%, #3b82f6 100%);
+  
+  /* Text */
+  --text-main: #f8fafc; /* Slate 50 */
+  --text-muted: #94a3b8; /* Slate 400 */
+  
+  /* Utils */
+  --ombre: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --rayon: 16px;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: var(--encre);
-  background: #f1f5f9;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-main);
+  background-color: var(--bg-color);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(20, 184, 166, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.15) 0px, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
 button {
   font-family: inherit;
   cursor: pointer;
   border: none;
+  transition: var(--transition);
 }
 
+/* Glassmorphism utility */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--ombre);
+}
+
+/* Connection Badge */
 .badge-connexion {
   position: fixed;
-  top: 10px;
-  right: 12px;
+  top: 16px;
+  right: 16px;
   font-size: 12px;
-  padding: 4px 10px;
+  font-weight: 600;
+  padding: 6px 14px;
   border-radius: 999px;
-  background: #e2e8f0;
-  color: var(--gris);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  z-index: 1000;
 }
-.badge-connexion.ok { background: #ccfbf1; color: var(--vert-fonce); }
-.badge-connexion.ko { background: #fee2e2; color: #b91c1c; }
+.badge-connexion.ok { 
+  background: rgba(16, 185, 129, 0.2); 
+  color: #34d399; 
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+.badge-connexion.ko { 
+  background: rgba(239, 68, 68, 0.2); 
+  color: #f87171; 
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
 
-/* Bandeau de configuration (poste agent) */
+/* Config Bar (Poste Agent) */
 .config-bar {
   display: flex;
-  gap: 10px;
+  gap: 16px;
   align-items: center;
-  padding: 10px 16px;
-  background: var(--encre);
-  color: var(--gris-clair);
+  padding: 12px 24px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
   font-size: 14px;
+  font-weight: 500;
 }
 .config-bar select, .config-bar input {
-  padding: 6px 10px;
+  padding: 8px 14px;
   border-radius: 8px;
-  border: 1px solid #334155;
-  background: #0b1f1f;
-  color: #e2e8f0;
+  border: 1px solid var(--border-color);
+  background: rgba(30, 41, 59, 0.5);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 14px;
+  transition: var(--transition);
+}
+.config-bar select:focus, .config-bar input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-glow);
 }
 
-/* Page d'accueil (choix de l'IHM) */
+/* Accueil */
 .accueil {
-  max-width: 900px;
-  margin: 60px auto;
-  padding: 0 20px;
+  max-width: 1000px;
+  margin: 80px auto;
+  padding: 0 24px;
+  text-align: center;
 }
-.accueil h1 { color: var(--vert-fonce); }
-.cartes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.accueil h1 { 
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+.accueil > p {
+  color: var(--text-muted);
+  font-size: 1.125rem;
+  margin-bottom: 48px;
+}
+.cartes { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+  gap: 32px; 
+  text-align: left;
+}
 .carte {
   display: block;
   text-decoration: none;
-  color: var(--encre);
-  background: var(--blanc);
+  color: var(--text-main);
   border-radius: var(--rayon);
-  padding: 24px;
-  box-shadow: var(--ombre);
-  border-top: 4px solid var(--vert);
-  transition: transform .12s ease;
+  padding: 32px;
+  border-top: 4px solid transparent;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
 }
-.carte:hover { transform: translateY(-3px); }
-.carte h2 { margin: 0 0 6px; }
-.carte p { margin: 0; color: var(--gris); font-size: 14px; }
+.carte::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 4px;
+  background: var(--accent-gradient);
+  opacity: 0.7;
+  transition: var(--transition);
+}
+.carte:hover { 
+  transform: translateY(-8px); 
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--primary-glow);
+}
+.carte:hover::before { opacity: 1; }
+.carte h2 { 
+  margin: 0 0 12px; 
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.carte p { 
+  margin: 0; 
+  color: var(--text-muted); 
+  font-size: 0.95rem; 
+  line-height: 1.6;
+}
