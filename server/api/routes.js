@@ -121,6 +121,33 @@ function creerRoutes(ctx) {
     }
   }));
 
+  // --- Admin : Habilitations (agent ↔ service, RG3) ---
+  r.get('/habilitations', geree(async (req, res) => {
+    const paires = await dao.habilitationDAO.toutes();
+    res.json(paires.map((h) => ({ matricule: h.matricule, codeService: h.code_service })));
+  }));
+
+  r.post('/habilitations', geree(async (req, res) => {
+    const { matricule, codeService } = req.body || {};
+    if (!matricule || !codeService) {
+      return res.status(400).json({ erreur: 'matricule et codeService requis' });
+    }
+    try {
+      await dao.habilitationDAO.ajouter(matricule, codeService);
+      res.status(201).json({ ok: true });
+    } catch (e) {
+      if (e.message.includes('FOREIGN KEY') || e.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' || e.errno === 1452) {
+        return res.status(400).json({ erreur: 'Agent ou service inexistant.' });
+      }
+      throw e;
+    }
+  }));
+
+  r.delete('/habilitations/:matricule/:codeService', geree(async (req, res) => {
+    await dao.habilitationDAO.retirer(req.params.matricule, req.params.codeService);
+    res.json({ ok: true });
+  }));
+
   // --- BORNE : prendre un ticket (opération 6.1 prendreTicket) ---
   r.post('/tickets', geree(async (req, res) => {
     const { codeService } = req.body || {};

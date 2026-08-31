@@ -144,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await apiCall(`${endpoints[type].url}/${id}`, 'DELETE');
       loadList(type);
+      if (type === 'agents' || type === 'services') loadHabilitations();
     } catch (e) {
       alert(`Impossible de supprimer :\n${e.message}`);
     }
@@ -201,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         await apiCall(`${ep.url}/${id}`, 'PUT', body);
         loadList(type);
+        if (type === 'agents' || type === 'services') loadHabilitations();
       } catch (err) {
         alert(err.message);
       }
@@ -271,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         await apiCall(ep.url, 'POST', body);
         loadList(type);
+        if (type === 'agents' || type === 'services') loadHabilitations();
       } catch (err) {
         alert(err.message);
       }
@@ -281,9 +284,74 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-add-agent').addEventListener('click', () => showAddForm('agents'));
   document.getElementById('btn-add-guichet').addEventListener('click', () => showAddForm('guichets'));
 
+  // --- HABILITATIONS (matrice agents × services) ---
+  const habilTable = document.getElementById('habil-table');
+
+  async function loadHabilitations() {
+    habilTable.innerHTML = '<tbody><tr><td class="empty-state">Chargement...</td></tr></tbody>';
+    try {
+      const [agents, services, paires] = await Promise.all([
+        apiCall('/api/agents', 'GET'),
+        apiCall('/api/services', 'GET'),
+        apiCall('/api/habilitations', 'GET')
+      ]);
+
+      if (!agents.length || !services.length) {
+        habilTable.innerHTML = '<tbody><tr><td class="empty-state">Ajoutez au moins un agent et un service.</td></tr></tbody>';
+        return;
+      }
+
+      // Ensemble des paires existantes pour test O(1).
+      const actives = new Set(paires.map(p => `${p.matricule}|${p.codeService}`));
+
+      // En-tête : une colonne par service.
+      let html = '<thead><tr><th>Agent</th>';
+      services.forEach(s => { html += `<th title="${s.libelle}">${s.code}</th>`; });
+      html += '</tr></thead><tbody>';
+
+      // Une ligne par agent, une case à cocher par service.
+      agents.forEach(a => {
+        html += `<tr><td><strong>${a.nom}</strong><br><span class="item-subtitle">${a.matricule}</span></td>`;
+        services.forEach(s => {
+          const coche = actives.has(`${a.matricule}|${s.code}`) ? 'checked' : '';
+          html += `<td class="habil-cell"><input type="checkbox" ${coche}
+            data-matricule="${a.matricule}" data-service="${s.code}"></td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody>';
+      habilTable.innerHTML = html;
+
+      habilTable.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', () => toggleHabilitation(cb));
+      });
+    } catch (e) {
+      console.error(e);
+      habilTable.innerHTML = '<tbody><tr><td class="empty-state" style="color:#ef4444;">Erreur lors du chargement.</td></tr></tbody>';
+    }
+  }
+
+  async function toggleHabilitation(cb) {
+    const { matricule, service } = cb.dataset;
+    cb.disabled = true;
+    try {
+      if (cb.checked) {
+        await apiCall('/api/habilitations', 'POST', { matricule, codeService: service });
+      } else {
+        await apiCall(`/api/habilitations/${matricule}/${service}`, 'DELETE');
+      }
+    } catch (e) {
+      cb.checked = !cb.checked; // rollback visuel
+      alert(`Échec : ${e.message}`);
+    } finally {
+      cb.disabled = false;
+    }
+  }
+
   // Initial load
   chargerStats();
   loadList('services');
   loadList('agents');
   loadList('guichets');
+  loadHabilitations();
 });

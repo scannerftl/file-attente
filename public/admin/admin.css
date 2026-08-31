@@ -330,3 +330,21 @@ body.admin {
 .crud-form-actions button {
   flex: 1;
 }
+
+/* --- Matrice des habilitations (agent × service) --- */
+.habil-table th, .habil-table td {
+  text-align: center;
+}
+.habil-table th:first-child, .habil-table td:first-child {
+  text-align: left;
+}
+.habil-cell input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+.habil-cell input[type="checkbox"]:disabled {
+  opacity: 0.4;
+  cursor: wait;
+}
