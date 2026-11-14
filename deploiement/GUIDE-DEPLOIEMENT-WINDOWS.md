@@ -124,6 +124,12 @@ il n'en existe aucun. **Sur le serveur**, au choix :
 Il se change ensuite dans **Administration → Sécurité**. En cas d'oubli, relancez
 `7-mot-de-passe-admin.bat` sur le serveur : c'est immédiat, sans redémarrage.
 
+### 10) Donner un mot de passe à chaque agent
+Les postes agents exigent le **matricule** et un **mot de passe personnel**. Dans
+**Administration → Agents**, cliquez sur le cadenas de chaque agent pour définir son
+mot de passe (les agents sans mot de passe sont signalés et ne peuvent pas ouvrir de
+poste). L'agent peut ensuite le changer depuis son poste (bouton « Mot de passe »).
+
 ---
 
 ## Côté clients (bornes, postes, écrans)
@@ -201,5 +207,6 @@ http://192.168.x.x:3000/poste/?matricule=A001&guichet=1
 4-ouvrir-pare-feu.bat                (EN ADMIN, une fois)
 5-demarrer.bat        OU     6-installer-service.bat (EN ADMIN)
 7-mot-de-passe-admin.bat             (sur le serveur, une fois)
+   → Administration → Agents : mot de passe de chaque agent
    → clients : http://IP-SERVEUR:3000/borne  |  /poste  |  /mural
 ```

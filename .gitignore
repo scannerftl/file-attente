@@ -4,6 +4,7 @@ server/db/*.sqlite-*
 server/db/marque.json
 server/db/medias/
 server/db/admin.json
+server/db/agents-acces.json
 *.log
 
 # Env secrets

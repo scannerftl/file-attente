@@ -2,6 +2,7 @@
 
 const express = require('express');
 const { NB_APPELS_RECENTS, DELAI_ABANDON_MIN } = require('../config');
+const { validerMotDePasse } = require('../securite/outils');
 
 /**
  * Routes de l'API HTTP/JSON.
@@ -10,17 +11,25 @@ const { NB_APPELS_RECENTS, DELAI_ABANDON_MIN } = require('../config');
  * font que traduire HTTP ⇄ appels de la couche métier (GestionnaireFile /
  * Statistiques). Aucune requête SQL, aucune règle de gestion ici.
  *
- * Les routes d'administration (référentiel, habilitations, statistiques,
- * purge, personnalisation, médias) exigent une session administrateur
- * (`admin`) ; celles de la borne, du poste agent et de l'écran mural
- * restent ouvertes.
+ * Accès :
+ *  - borne et écran mural : ouverts ;
+ *  - poste agent (file, ticket en cours, appeler, clôturer) : session agent
+ *    (`agent`), qui fournit le matricule de l'agent connecté ;
+ *  - administration (référentiel, habilitations, statistiques, purge,
+ *    personnalisation, médias, mots de passe des agents) : session
+ *    administrateur (`admin`).
  *
  * @param {object} ctx  contexte assemblé (voir contexte.js)
  * @param {object} [opts]
  * @param {import('express').RequestHandler} [opts.admin] middleware d'accès administrateur
+ * @param {import('express').RequestHandler} [opts.agent] middleware d'accès agent (pose req.matricule)
+ * @param {import('../securite/AccesAgents')} [opts.accesAgents] mots de passe des agents
  */
 function creerRoutes(ctx, opts = {}) {
-  const admin = opts.admin || ((req, res, next) => next());
+  const libre = (req, res, next) => next();
+  const admin = opts.admin || libre;
+  const agent = opts.agent || ((req, res, next) => { req.matricule = req.query.matricule || (req.body || {}).matricule; next(); });
+  const accesAgents = opts.accesAgents || null;
   const { gestionnaire, statistiques, dao, marque } = ctx;
   const r = express.Router();
 
@@ -41,9 +50,15 @@ function creerRoutes(ctx, opts = {}) {
     res.json(services.map((s) => s.versJSON()));
   }));
 
-  r.get('/agents', geree(async (req, res) => {
+  // Liste des agents (administration) : services habilités et présence d'un mot de passe.
+  r.get('/agents', admin, geree(async (req, res) => {
     const agents = await dao.agentDAO.tous();
-    res.json(agents.map((a) => a.versJSON()));
+    const avecMdp = accesAgents ? accesAgents.avecMotDePasse() : new Set();
+    res.json(await Promise.all(agents.map(async (a) => ({
+      ...a.versJSON(),
+      services: await ctx.habilitation.servicesDe(a.matricule),
+      motDePasse: avecMdp.has(a.matricule),
+    }))));
   }));
 
   r.get('/guichets', geree(async (req, res) => {
@@ -79,9 +94,13 @@ function creerRoutes(ctx, opts = {}) {
 
   // --- Admin CRUD : Agents ---
   r.post('/agents', admin, geree(async (req, res) => {
-    const { matricule, nom } = req.body || {};
+    const { matricule, nom, motDePasse } = req.body || {};
     if (!matricule || !nom) return res.status(400).json({ erreur: 'matricule et nom requis' });
+    if (motDePasse && accesAgents) {
+      try { validerMotDePasse(motDePasse); } catch (e) { return res.status(400).json({ erreur: e.message }); }
+    }
     await dao.agentDAO.creer(matricule, nom);
+    if (motDePasse && accesAgents) accesAgents.definir(matricule, motDePasse);
     res.status(201).json({ ok: true });
   }));
 
@@ -91,9 +110,24 @@ function creerRoutes(ctx, opts = {}) {
     res.json({ ok: true });
   }));
 
+  // Mot de passe d'un agent : défini ou réinitialisé par l'administrateur
+  // (les sessions ouvertes de cet agent sont fermées).
+  r.put('/agents/:matricule/mot-de-passe', admin, geree(async (req, res) => {
+    if (!accesAgents) return res.status(501).json({ erreur: 'Authentification des agents indisponible' });
+    if (!(await dao.agentDAO.trouver(req.params.matricule))) return res.status(404).json({ erreur: 'Agent inconnu' });
+    try {
+      accesAgents.definir(req.params.matricule, (req.body || {}).motDePasse);
+    } catch (e) {
+      return res.status(400).json({ erreur: e.message });
+    }
+    accesAgents.fermerSessionsDe(req.params.matricule);
+    res.json({ ok: true });
+  }));
+
   r.delete('/agents/:matricule', admin, geree(async (req, res) => {
     try {
       await dao.agentDAO.supprimer(req.params.matricule);
+      if (accesAgents) accesAgents.supprimer(req.params.matricule);
       res.json({ ok: true });
     } catch (e) {
       if (e.message.includes('FOREIGN KEY') || e.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' || e.errno === 1451) {
@@ -164,16 +198,16 @@ function creerRoutes(ctx, opts = {}) {
     res.status(201).json(ticket.versJSON());
   }));
 
-  // --- POSTE AGENT : sa file d'attente ---
-  r.get('/file', geree(async (req, res) => {
-    const { matricule } = req.query;
+  // --- POSTE AGENT : sa file d'attente (agent connecté) ---
+  r.get('/file', agent, geree(async (req, res) => {
+    const matricule = req.matricule;
     if (!matricule) return res.status(400).json({ erreur: 'matricule requis' });
     const file = await gestionnaire.fileDeAgent(matricule);
     res.json(file.map((t) => t.versJSON()));
   }));
 
   // --- POSTE AGENT : ticket en cours à son guichet ---
-  r.get('/en-cours', geree(async (req, res) => {
+  r.get('/en-cours', agent, geree(async (req, res) => {
     const guichet = Number(req.query.guichet);
     if (!guichet) return res.status(400).json({ erreur: 'guichet requis' });
     const t = await gestionnaire.enCours(guichet);
@@ -181,8 +215,10 @@ function creerRoutes(ctx, opts = {}) {
   }));
 
   // --- POSTE AGENT : appeler le suivant (opération 6.1 appelerSuivant) ---
-  r.post('/appeler', geree(async (req, res) => {
-    const { matricule, guichet } = req.body || {};
+  // L'appel se fait toujours au nom de l'agent connecté.
+  r.post('/appeler', agent, geree(async (req, res) => {
+    const { guichet } = req.body || {};
+    const matricule = req.matricule;
     if (!matricule || !guichet) {
       return res.status(400).json({ erreur: 'matricule et guichet requis' });
     }
@@ -193,7 +229,7 @@ function creerRoutes(ctx, opts = {}) {
   }));
 
   // --- POSTE AGENT : clôturer (opération 6.1 cloturerTicket) ---
-  r.post('/cloturer', geree(async (req, res) => {
+  r.post('/cloturer', agent, geree(async (req, res) => {
     const { num, date } = req.body || {};
     if (num === undefined) return res.status(400).json({ erreur: 'num requis' });
     await gestionnaire.cloturerTicket(Number(num), date ? new Date(date) : undefined);

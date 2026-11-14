@@ -146,12 +146,33 @@ API : `GET /api/marque`, `PUT /api/marque`, `DELETE /api/marque`, `POST /api/med
 (corps brut, type MIME en `Content-Type`),
 `GET /api/marque/modeles`, `GET /api/marque/modeles/:id`.
 
-## 🔐 Accès à l'administration
+## 🔐 Accès : administration et postes agents
 
-L'administration (`/admin/` et les routes d'API correspondantes : référentiel,
-habilitations, statistiques, purge, personnalisation, envoi de médias) est **protégée
-par mot de passe**. La borne, le poste agent et l'écran mural restent accessibles sans
-mot de passe.
+| Écran | Accès |
+| --- | --- |
+| Borne, écran mural | Libre (écrans publics) |
+| Poste agent | **Matricule + mot de passe personnel de l'agent** |
+| Administration | **Mot de passe administrateur** |
+
+Côté API, les routes du poste (`/file`, `/en-cours`, `/appeler`, `/cloturer`) exigent une
+session agent, et l'appel se fait toujours **au nom de l'agent connecté** (un matricule
+passé dans la requête est ignoré). Les routes d'administration (référentiel, liste des
+agents, habilitations, statistiques, purge, personnalisation, médias, mots de passe des
+agents) exigent une session administrateur.
+
+### Mots de passe des agents
+
+- L'administrateur les définit ou les réinitialise dans **Administration → Agents**
+  (icône cadenas, ou champ « mot de passe » à la création d'un agent). La liste indique
+  les agents qui n'en ont pas encore : ils ne peuvent pas ouvrir de poste.
+- L'agent change le sien depuis son poste (bouton « Mot de passe »).
+- Une réinitialisation par l'admin, un changement par l'agent ou la suppression de
+  l'agent ferment ses autres sessions. Une session agent expire après 12 h
+  d'inactivité ; « Fermer le poste » la termine.
+- Empreintes stockées dans `server/db/agents-acces.json` (`CHEMIN_AGENTS_ACCES`), hors de
+  la base : aucune migration SQLite/MySQL n'est nécessaire.
+
+### Mot de passe administrateur
 
 **Premier mot de passe** — au premier démarrage, il n'en existe aucun ; trois façons de
 le créer :
@@ -168,9 +189,10 @@ passe s'applique sans redémarrage.
 
 | Mesure | Détail |
 | --- | --- |
-| Stockage | Empreinte scrypt + sel aléatoire dans `server/db/admin.json` (`CHEMIN_ADMIN`), jamais en clair, hors du dépôt git |
-| Session | Cookie `HttpOnly`, `SameSite=Strict`, expiration après 8 h d'inactivité ; un redémarrage du serveur déconnecte |
+| Stockage | Empreintes scrypt + sel aléatoire (`server/db/admin.json`, `server/db/agents-acces.json`), jamais en clair, hors du dépôt git |
+| Session | Cookies `HttpOnly`, `SameSite=Strict` (admin et agent séparés) ; expiration après 8 h (admin) ou 12 h (agent) d'inactivité ; un redémarrage du serveur déconnecte |
 | Essais en série | Après 5 échecs depuis une même adresse : attente de 1 min, doublée à chaque nouvel échec |
+| Identifiants | « Matricule ou mot de passe incorrect » : le message ne révèle pas si le matricule existe |
 | Requêtes d'autres sites | Les modifications venant d'une autre origine sont refusées |
 
 > Le trafic n'est pas chiffré en HTTP simple : sur un réseau partagé, placez le serveur
@@ -193,6 +215,10 @@ Puis ouvrir dans un navigateur :
 - Écran mural : <http://localhost:3000/mural/>
 - Administration : <http://localhost:3000/admin/>
 
+> 🔑 **Avant la démo** : créez le mot de passe administrateur (ouvrez `/admin/` sur la
+> machine, ou démarrez avec `ADMIN_MOT_DE_PASSE=…`), puis définissez celui d'un agent
+> dans **Administration → Agents** pour pouvoir ouvrir un poste.
+
 > 💡 **Démo** : ouvrez la borne, le poste et l'écran mural côte à côte. Prenez un ticket
 > sur la borne → il apparaît dans la file du poste ; cliquez « Appeler le suivant » →
 > l'écran mural se met à jour instantanément.
@@ -200,7 +226,8 @@ Puis ouvrir dans un navigateur :
 ### Référentiel de démonstration (seed)
 
 - **Services** : `RET` (Retrait/Dépôt) · `OUV` (Ouverture de compte) · `CRE` (Crédit)
-- **Agents** : `A001` Alice (RET, OUV) · `A002` Bob (RET, CRE) · `A003` Chloé (tous)
+- **Agents** : `A001` Alice (RET, OUV) · `A002` Bob (RET, CRE) · `A003` Chloé (tous) —
+  sans mot de passe au départ
 - **Guichets** : 1, 2, 3
 
 ## 🏗️ Architecture en 3 couches
@@ -250,6 +277,7 @@ Copier `.env.example` en `.env` (ou exporter les variables). Principales options
 | `DOSSIER_MEDIAS` | `server/db/medias/` | Images, GIF et vidéos publicitaires envoyés |
 | `CHEMIN_ADMIN` | `server/db/admin.json` | Empreinte du mot de passe de l'administration |
 | `ADMIN_MOT_DE_PASSE` | — | Mot de passe créé au premier démarrage s'il n'en existe aucun |
+| `CHEMIN_AGENTS_ACCES` | `server/db/agents-acces.json` | Empreintes des mots de passe des agents |
 | `DB_DRIVER` | `sqlite` | `sqlite` (dev) ou `mysql` (cible) |
 | `DELAI_ABANDON_MIN` | `5` | Délai (min) avant qu'un ticket appelé non clôturé soit abandonné |
 | `MYSQL_*` | — | Hôte, port, user, mot de passe, base (si `DB_DRIVER=mysql`) |
@@ -297,8 +325,8 @@ npm test
 
 `test/recette.test.js` implémente les tests **T1 → T8** (sur SQLite en mémoire) ;
 `test/marque.test.js` couvre la personnalisation client (validation, modèles, médias, animations) ;
-`test/acces.test.js` couvre l'accès administrateur (mot de passe, sessions, routes
-ouvertes et protégées, limitation des essais).
+`test/acces.test.js` couvre l'accès administrateur et agents (mots de passe, sessions,
+routes ouvertes et protégées, appel au nom de l'agent connecté, limitation des essais).
 Pour vérifier l'adaptateur MySQL, voir `npm run test:mysql` ci-dessus.
 
 ## 🖥️ Déploiement Windows

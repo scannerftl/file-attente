@@ -239,3 +239,9 @@
 .mdp-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 14px; align-items: end; padding: 20px 20px 8px; }
 .mdp-statut { padding: 0 20px 18px; min-height: 20px; }
 @media (max-width: 900px) { .mdp-form { grid-template-columns: 1fr; } }
+
+/* Statut du mot de passe d'un agent */
+.etat-mdp { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; margin-top: 2px; }
+.etat-mdp::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.etat-mdp.ok { color: var(--succes); }
+.etat-mdp.manquant { color: var(--alerte); }

@@ -86,3 +86,14 @@
   .poste-grille { grid-template-columns: 1fr; padding: 0 16px; margin: 20px auto; }
   .poste-config { padding: 12px 16px; }
 }
+
+/* Connexion de l'agent */
+.poste-connexion { display: grid; place-items: center; padding: 48px 16px; }
+.agent-connecte { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--texte); }
+.agent-connecte .ico { color: var(--primaire); }
+.agent-matricule { font-size: 12px; font-weight: 600; color: var(--texte-3); }
+.poste-config-actions { margin-left: auto; display: flex; gap: 8px; }
+@media (max-width: 640px) {
+  .poste-config-actions { margin-left: 0; width: 100%; }
+  .poste-config-actions .btn { flex: 1; }
+}

@@ -30,6 +30,8 @@ module.exports = {
   // passe au premier démarrage (il est ensuite modifiable depuis l'admin).
   CHEMIN_ADMIN: process.env.CHEMIN_ADMIN || path.join(__dirname, 'db', 'admin.json'),
   ADMIN_MOT_DE_PASSE: process.env.ADMIN_MOT_DE_PASSE || '',
+  // Postes agents : empreintes des mots de passe des agents (une par matricule).
+  CHEMIN_AGENTS_ACCES: process.env.CHEMIN_AGENTS_ACCES || path.join(__dirname, 'db', 'agents-acces.json'),
 
   // Médias publicitaires envoyés (images, GIF animés, vidéos), servis sous /medias/.
   DOSSIER_MEDIAS: process.env.DOSSIER_MEDIAS || path.join(__dirname, 'db', 'medias'),

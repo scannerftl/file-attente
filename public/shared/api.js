@@ -5,10 +5,17 @@
      (décision d'architecture Partie 2.3 / choix Partie 5.1).
    L'IHM n'appelle QUE ces fonctions ; jamais la base directement.
    ===================================================================== */
+/** Erreur d'API portant le code HTTP (ex. 401 = connexion requise). */
+async function erreurHttp(r) {
+  const e = new Error((await r.json().catch(() => ({}))).erreur || r.statusText);
+  e.statut = r.status;
+  return e;
+}
+
 const API = {
   async get(url) {
     const r = await fetch(url);
-    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).erreur || r.statusText);
+    if (!r.ok) throw await erreurHttp(r);
     return r.json();
   },
   async post(url, corps) {
@@ -17,7 +24,7 @@ const API = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(corps || {}),
     });
-    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).erreur || r.statusText);
+    if (!r.ok) throw await erreurHttp(r);
     return r.json();
   },
 };

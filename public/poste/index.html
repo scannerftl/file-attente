@@ -24,13 +24,38 @@
     </div>
   </header>
 
-  <!-- Le poste est rattaché à un agent + un guichet (contexte du poste). -->
-  <div class="poste-config">
-    <label>Agent <select id="sel-agent" class="champ"></select></label>
+  <!-- Connexion de l'agent (matricule + mot de passe personnel) -->
+  <main id="vue-connexion" class="poste-connexion cachee">
+    <form id="form-connexion" class="carte connexion-carte" novalidate>
+      <span class="pastille"><svg class="ico"><use href="/shared/icones.svg#i-cadenas"/></svg></span>
+      <h1>Connexion agent</h1>
+      <p class="connexion-desc">Identifiez-vous pour ouvrir votre poste.</p>
+      <label class="connexion-champ">Matricule
+        <input id="cx-matricule" class="champ" autocomplete="username" autocapitalize="characters" spellcheck="false" required />
+      </label>
+      <label class="connexion-champ">Mot de passe
+        <input id="cx-mdp" class="champ" type="password" autocomplete="current-password" required />
+      </label>
+      <label class="connexion-champ">Guichet
+        <select id="cx-guichet" class="champ"></select>
+      </label>
+      <p id="cx-msg" class="connexion-msg" role="alert"></p>
+      <button class="btn btn-primaire btn-l" type="submit">Ouvrir mon poste</button>
+      <p class="connexion-aide">Pas encore de mot de passe ? Demandez-le à l'administrateur de l'agence.</p>
+    </form>
+  </main>
+
+  <!-- Poste ouvert : agent connecté + guichet -->
+  <div id="poste-config" class="poste-config cachee">
+    <span class="agent-connecte"><svg class="ico ico-s"><use href="/shared/icones.svg#i-poste"/></svg> <strong id="agent-nom"></strong> <span id="agent-matricule" class="agent-matricule"></span></span>
     <label>Guichet <select id="sel-guichet" class="champ"></select></label>
+    <span class="poste-config-actions">
+      <button id="btn-mdp" class="btn btn-secondaire btn-s" type="button"><svg class="ico ico-s"><use href="/shared/icones.svg#i-cadenas"/></svg> Mot de passe</button>
+      <button id="btn-deconnexion" class="btn btn-secondaire btn-s" type="button"><svg class="ico ico-s"><use href="/shared/icones.svg#i-sortie"/></svg> Fermer le poste</button>
+    </span>
   </div>
 
-  <main class="poste-grille">
+  <main id="vue-poste" class="poste-grille cachee">
     <section class="carte poste-action">
       <div class="carte-entete">
         <h2>Ticket en cours</h2>
@@ -60,6 +85,21 @@
       <p id="file-vide" class="vide cachee">Aucun ticket en attente.</p>
     </section>
   </main>
+
+  <!-- Changement de son mot de passe -->
+  <dialog id="dlg-mdp" class="dialogue">
+    <form id="form-mdp" method="dialog" novalidate>
+      <h2>Changer mon mot de passe</h2>
+      <label class="connexion-champ">Mot de passe actuel <input id="mdp-actuel" class="champ" type="password" autocomplete="current-password" required></label>
+      <label class="connexion-champ">Nouveau mot de passe <input id="mdp-nouveau" class="champ" type="password" autocomplete="new-password" minlength="8" required></label>
+      <label class="connexion-champ">Confirmation <input id="mdp-confirmation" class="champ" type="password" autocomplete="new-password" minlength="8" required></label>
+      <p id="mdp-msg" class="connexion-msg" role="alert"></p>
+      <div class="dialogue-actions">
+        <button id="mdp-annuler" class="btn btn-secondaire" type="button">Annuler</button>
+        <button class="btn btn-primaire" type="submit">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="/shared/api.js"></script>
   <script src="/poste/poste.js"></script>

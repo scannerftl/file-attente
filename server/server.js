@@ -35,6 +35,8 @@ const { brancherWebSocket } = require('./ws/notificationWS');
 const { demarrerJobs } = require('./jobs/planificateur');
 const { creerAuth } = require('./api/auth');
 const AccesAdmin = require('./securite/AccesAdmin');
+const AccesAgents = require('./securite/AccesAgents');
+const { creerAuthAgent } = require('./api/authAgent');
 
 /**
  * Application Express : API + fichiers des IHM.
@@ -43,14 +45,17 @@ const AccesAdmin = require('./securite/AccesAdmin');
  * @param {object} ctx  contexte assemblé (voir contexte.js)
  * @param {AccesAdmin} acces  mot de passe et sessions de l'administration
  * @param {string} dossierMedias  dossier des médias publicitaires envoyés
+ * @param {AccesAgents} accesAgents  mots de passe et sessions des agents
  */
-function creerApp(ctx, acces, dossierMedias) {
+function creerApp(ctx, acces, dossierMedias, accesAgents) {
   const app = express();
   const auth = creerAuth(acces);
+  const authAgent = creerAuthAgent(accesAgents, ctx);
   // Limite relevée : la personnalisation client peut contenir des images (logo, visuels).
   app.use(express.json({ limit: '12mb' }));
   app.use('/api/admin', auth.routes);
-  app.use('/api', creerRoutes(ctx, { admin: auth.exiger }));
+  app.use('/api/agent', authAgent.routes);
+  app.use('/api', creerRoutes(ctx, { admin: auth.exiger, agent: authAgent.exiger, accesAgents }));
 
   // Médias publicitaires envoyés depuis l'administration. Un SVG ouvert
   // directement ne peut exécuter aucun script (CSP « sandbox »).
@@ -90,7 +95,8 @@ async function demarrer() {
     chemin: config.CHEMIN_ADMIN,
     motDePasseInitial: config.ADMIN_MOT_DE_PASSE,
   });
-  const app = creerApp(ctx, acces, config.DOSSIER_MEDIAS);
+  const accesAgents = new AccesAgents({ chemin: config.CHEMIN_AGENTS_ACCES });
+  const app = creerApp(ctx, acces, config.DOSSIER_MEDIAS, accesAgents);
 
   // 3) Serveur HTTP + WebSocket (push / Observateur).
   const serveur = http.createServer(app);
@@ -98,6 +104,9 @@ async function demarrer() {
 
   // 4) Traitements automatiques (MOT).
   const arreterJobs = demarrerJobs(ctx, config);
+
+  const avecMdp = accesAgents.avecMotDePasse();
+  const agentsSansMdp = (await ctx.dao.agentDAO.tous()).map((a) => a.matricule).filter((m) => !avecMdp.has(m));
 
   serveur.listen(config.PORT, config.HOST, () => {
     const lignes = [
@@ -115,6 +124,13 @@ async function demarrer() {
         '  ⚠ Administration : aucun mot de passe défini.',
         `    Ouvrez http://localhost:${config.PORT}/admin/ SUR CE SERVEUR pour le créer,`,
         '    ou lancez : npm run admin:mot-de-passe'
+      );
+    }
+    const sansMdp = agentsSansMdp.length;
+    if (sansMdp) {
+      lignes.push(
+        `  ⚠ Postes agents : ${sansMdp} agent(s) sans mot de passe (${agentsSansMdp.join(', ')}).`,
+        '    Définissez-les dans Administration → Agents.'
       );
     }
     lignes.push('======================================================');

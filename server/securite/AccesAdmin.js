@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
+const { LONGUEUR_MIN, validerMotDePasse, hacher, correspond, Sessions, Limiteur } = require('./outils');
 
 /**
  * AccesAdmin — mot de passe et sessions de l'administration.
@@ -16,18 +16,6 @@ const crypto = require('crypto');
  * - Protection contre les essais en série : après 5 échecs depuis une même
  *   adresse, attente imposée (1 min, puis doublée à chaque nouvel échec).
  */
-const LONGUEUR_MIN = 8;
-const LONGUEUR_MAX = 128;
-const ESSAIS_LIBRES = 5;
-const BLOCAGE_INITIAL_MS = 60 * 1000;
-const BLOCAGE_MAX_MS = 60 * 60 * 1000;
-
-function erreur(message) {
-  const e = new Error(message);
-  e.metier = true;
-  return e;
-}
-
 class AccesAdmin {
   /**
    * @param {object} opts
@@ -40,8 +28,8 @@ class AccesAdmin {
     this.chemin = chemin;
     this.dureeSessionMs = dureeSessionMs;
     this.maintenant = maintenant;
-    this.sessions = new Map();   // jeton → échéance
-    this.echecs = new Map();     // adresse → { n, jusqua }
+    this.sessions = new Sessions(dureeSessionMs, maintenant);
+    this.limiteur = new Limiteur(maintenant);
     if (!this.estConfigure() && motDePasseInitial) this.definir(motDePasseInitial);
   }
 
@@ -52,86 +40,47 @@ class AccesAdmin {
   }
 
   static valider(motDePasse) {
-    if (typeof motDePasse !== 'string' || motDePasse.length < LONGUEUR_MIN) {
-      throw erreur(`Le mot de passe doit contenir au moins ${LONGUEUR_MIN} caractères`);
-    }
-    if (motDePasse.length > LONGUEUR_MAX) throw erreur(`Mot de passe trop long (${LONGUEUR_MAX} caractères maximum)`);
+    validerMotDePasse(motDePasse);
   }
 
   definir(motDePasse) {
-    AccesAdmin.valider(motDePasse);
-    const sel = crypto.randomBytes(16);
-    const empreinte = crypto.scryptSync(motDePasse, sel, 64);
+    const enregistrement = { ...hacher(motDePasse), maj: new Date(this.maintenant()).toISOString() };
     fs.mkdirSync(path.dirname(this.chemin), { recursive: true });
     const tmp = this.chemin + '.tmp';
-    fs.writeFileSync(
-      tmp,
-      JSON.stringify({ algo: 'scrypt', sel: sel.toString('hex'), empreinte: empreinte.toString('hex'), maj: new Date(this.maintenant()).toISOString() }, null, 2),
-      { mode: 0o600 }
-    );
+    fs.writeFileSync(tmp, JSON.stringify(enregistrement, null, 2), { mode: 0o600 });
     fs.renameSync(tmp, this.chemin);
   }
 
   verifier(motDePasse) {
-    if (!this.estConfigure() || typeof motDePasse !== 'string' || motDePasse.length > LONGUEUR_MAX) return false;
-    const { sel, empreinte } = JSON.parse(fs.readFileSync(this.chemin, 'utf8'));
-    const attendue = Buffer.from(empreinte, 'hex');
-    const calculee = crypto.scryptSync(motDePasse, Buffer.from(sel, 'hex'), attendue.length);
-    return crypto.timingSafeEqual(attendue, calculee);
+    if (!this.estConfigure()) return false;
+    return correspond(motDePasse, JSON.parse(fs.readFileSync(this.chemin, 'utf8')));
   }
 
   /* ---------- Sessions ---------- */
 
   ouvrirSession() {
-    const jeton = crypto.randomBytes(32).toString('hex');
-    this.sessions.set(jeton, this.maintenant() + this.dureeSessionMs);
-    return jeton;
+    return this.sessions.ouvrir();
   }
 
   /** Vrai si la session existe et n'a pas expiré ; prolonge alors sa durée. */
   sessionValide(jeton) {
-    if (!jeton) return false;
-    const echeance = this.sessions.get(jeton);
-    if (!echeance) return false;
-    if (echeance < this.maintenant()) {
-      this.sessions.delete(jeton);
-      return false;
-    }
-    this.sessions.set(jeton, this.maintenant() + this.dureeSessionMs);
-    return true;
+    return this.sessions.lire(jeton) !== null;
   }
 
   fermerSession(jeton) {
-    this.sessions.delete(jeton);
+    this.sessions.fermer(jeton);
   }
 
   /** Ferme toutes les sessions sauf `garder` (après un changement de mot de passe). */
   fermerAutresSessions(garder) {
-    for (const j of this.sessions.keys()) if (j !== garder) this.sessions.delete(j);
+    this.sessions.fermerSi((_, jeton) => jeton !== garder);
   }
 
   /* ---------- Essais en série ---------- */
 
-  /** @returns {number} secondes d'attente restantes (0 = essai autorisé) */
-  attenteAvantEssai(adresse) {
-    const e = this.echecs.get(adresse);
-    if (!e || !e.jusqua) return 0;
-    return Math.max(0, Math.ceil((e.jusqua - this.maintenant()) / 1000));
-  }
-
-  noterEchec(adresse) {
-    const e = this.echecs.get(adresse) || { n: 0, jusqua: 0 };
-    e.n += 1;
-    if (e.n >= ESSAIS_LIBRES) {
-      const duree = Math.min(BLOCAGE_MAX_MS, BLOCAGE_INITIAL_MS * 2 ** (e.n - ESSAIS_LIBRES));
-      e.jusqua = this.maintenant() + duree;
-    }
-    this.echecs.set(adresse, e);
-  }
-
-  noterSucces(adresse) {
-    this.echecs.delete(adresse);
-  }
+  attenteAvantEssai(adresse) { return this.limiteur.attente(adresse); }
+  noterEchec(adresse) { this.limiteur.echec(adresse); }
+  noterSucces(adresse) { this.limiteur.succes(adresse); }
 }
 
 AccesAdmin.LONGUEUR_MIN = LONGUEUR_MIN;

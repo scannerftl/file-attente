@@ -449,3 +449,30 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 }
 @keyframes pulsation { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 @media (prefers-reduced-motion: reduce) { .veille-appel { animation: none; } }
+
+/* =====================================================================
+   Formulaires de connexion (administration, poste agent) et dialogues
+   ===================================================================== */
+.connexion-carte {
+  width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 32px;
+  box-shadow: var(--ombre-2);
+}
+.connexion-carte h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.connexion-desc { margin: -6px 0 4px; color: var(--texte-2); font-size: 14px; }
+.connexion-champ { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--texte-2); }
+.connexion-champ .champ { height: 44px; font-size: 15px; font-weight: 400; color: var(--texte); }
+.connexion-msg { margin: 0; min-height: 20px; color: var(--danger); font-size: 14px; font-weight: 600; }
+.connexion-aide { margin: 0; text-align: center; font-size: 13px; color: var(--texte-3); }
+
+.dialogue {
+  width: min(420px, calc(100vw - 32px));
+  padding: 0; border: 1px solid var(--bordure); border-radius: var(--rayon-l);
+  background: var(--surface); color: var(--texte);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+}
+.dialogue::backdrop { background: rgba(10, 15, 25, 0.45); }
+.dialogue form { display: flex; flex-direction: column; gap: 14px; padding: 24px; }
+.dialogue h2 { font-size: 18px; font-weight: 700; }
+.dialogue-actions { display: flex; justify-content: flex-end; gap: 10px; }

@@ -157,10 +157,19 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="item-subtitle">${sousTitreItem(type, item)}</span>
           </div>
           <div class="item-actions">
+            ${type === 'agents' ? `<button class="btn-icone mdp" type="button" title="Définir le mot de passe" aria-label="Définir le mot de passe"><svg class="ico"><use href="/shared/icones.svg#i-cadenas"/></svg></button>` : ''}
             <button class="btn-icone edit" type="button" title="Modifier" aria-label="Modifier"><svg class="ico"><use href="/shared/icones.svg#i-modifier"/></svg></button>
             <button class="btn-icone danger delete" type="button" data-id="${item[ep.id]}" title="Supprimer" aria-label="Supprimer"><svg class="ico"><use href="/shared/icones.svg#i-supprimer"/></svg></button>
           </div>
         `;
+        if (type === 'agents') {
+          // Statut du mot de passe du poste agent.
+          const statut = document.createElement('span');
+          statut.className = 'etat-mdp ' + (item.motDePasse ? 'ok' : 'manquant');
+          statut.textContent = item.motDePasse ? 'Mot de passe défini' : 'Pas de mot de passe : connexion impossible';
+          li.querySelector('.item-info').appendChild(statut);
+          li.querySelector('.mdp').addEventListener('click', () => showPasswordForm(item, li));
+        }
         li.querySelector('.edit').addEventListener('click', () => showEditForm(type, item, li));
         li.querySelector('.delete').addEventListener('click', () => deleteItem(type, item[ep.id]));
         ul.appendChild(li);
@@ -169,6 +178,39 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error(e);
       ul.innerHTML = '<li><span class="item-subtitle texte-erreur">Erreur de chargement</span></li>';
     }
+  }
+
+  // Définition / réinitialisation du mot de passe d'un agent (poste agent).
+  function showPasswordForm(item, li) {
+    li.innerHTML = `
+      <form class="crud-form">
+        <span class="item-subtitle"></span>
+        <input type="password" class="mdp-nouveau" placeholder="Nouveau mot de passe (8 caractères min.)" autocomplete="new-password" minlength="8" required>
+        <input type="password" class="mdp-confirmation" placeholder="Confirmation" autocomplete="new-password" minlength="8" required>
+        <span class="item-subtitle erreur-form texte-erreur"></span>
+        <div class="crud-form-actions">
+          <button type="submit" class="btn btn-primaire btn-s">Enregistrer</button>
+          <button type="button" class="btn btn-secondaire btn-s cancel">Annuler</button>
+        </div>
+      </form>
+    `;
+    li.querySelector('.item-subtitle').textContent =
+      `${item.motDePasse ? 'Réinitialiser' : 'Définir'} le mot de passe de ${item.nom} (${item.matricule})`;
+    li.querySelector('.mdp-nouveau').focus();
+    li.querySelector('.cancel').addEventListener('click', () => loadList('agents'));
+    li.querySelector('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nouveau = li.querySelector('.mdp-nouveau').value;
+      const erreurEl = li.querySelector('.erreur-form');
+      if (nouveau.length < 8) { erreurEl.textContent = 'Au moins 8 caractères.'; return; }
+      if (nouveau !== li.querySelector('.mdp-confirmation').value) { erreurEl.textContent = 'Les deux saisies ne correspondent pas.'; return; }
+      try {
+        await apiCall(`/api/agents/${encodeURIComponent(item.matricule)}/mot-de-passe`, 'PUT', { motDePasse: nouveau });
+        loadList('agents');
+      } catch (err) {
+        erreurEl.textContent = err.message;
+      }
+    });
   }
 
   async function deleteItem(type, id) {
@@ -261,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
       inputsHTML = `
         <input type="text" id="add-id" placeholder="Matricule (ex: A001)" required>
         <input type="text" id="add-name" placeholder="Nom complet" required>
+        <input type="password" id="add-mdp" placeholder="Mot de passe du poste (8 caractères min.)" autocomplete="new-password" minlength="8">
       `;
     } else if (type === 'guichets') {
       inputsHTML = `
@@ -295,6 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
         body.code = id; body.libelle = name; body.dureeCible = extraInput ? extraInput.value : undefined;
       } else if (type === 'agents') {
         body.matricule = id; body.nom = name;
+        const mdp = document.getElementById('add-mdp').value;
+        if (mdp) body.motDePasse = mdp;
       } else if (type === 'guichets') {
         body.numero = id; body.etat = name;
       }

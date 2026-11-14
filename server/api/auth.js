@@ -27,8 +27,8 @@ function lireCookie(req, nom) {
   return null;
 }
 
-function poserCookie(req, res, valeur, maxAgeSec) {
-  const attributs = [`${COOKIE}=${valeur}`, 'Path=/', 'HttpOnly', 'SameSite=Strict', `Max-Age=${maxAgeSec}`];
+function poserCookie(req, res, valeur, maxAgeSec, nom = COOKIE) {
+  const attributs = [`${nom}=${valeur}`, 'Path=/', 'HttpOnly', 'SameSite=Strict', `Max-Age=${maxAgeSec}`];
   if (req.secure) attributs.push('Secure');
   res.append('Set-Cookie', attributs.join('; '));
 }
@@ -135,7 +135,7 @@ function creerAuth(acces) {
     res.json({ ok: true });
   });
 
-  return { routes: r, exiger, protegerPages };
+  return { routes: r, exiger, protegerPages, estConnecte: connecte };
 }
 
-module.exports = { creerAuth };
+module.exports = { creerAuth, lireCookie, poserCookie, origineAutorisee };
