@@ -8,12 +8,14 @@
   <link rel="stylesheet" href="/shared/style.css" />
   <link rel="stylesheet" href="/mural/mural.css" />
   <script src="/shared/theme.js"></script>
+  <script src="/shared/marque.js"></script>
 </head>
-<body class="mural">
-  <header class="mural-barre">
+<body class="mural" data-ecran="mural">
+  <!-- En-tête aux couleurs du client -->
+  <header class="barre barre-marque mural-barre">
     <div class="marque">
-      <img class="marque-logo" src="/shared/logo.svg" alt="" />
-      <span class="marque-texte"><span class="marque-nom">Agence</span><span class="marque-sous">Salle d'attente</span></span>
+      <span class="marque-logo" data-marque="logo"><img src="/shared/logo.svg" alt="" /></span>
+      <span class="marque-texte"><span class="marque-nom" data-marque="nom">Agence</span><span class="marque-sous" data-marque="slogan"></span></span>
     </div>
     <div class="mural-droite">
       <span id="badge" class="badge-connexion">connexion…</span>
@@ -24,6 +26,9 @@
     </div>
   </header>
 
+  <!-- Zone publicitaire « haut » -->
+  <div class="pub-haut cachee" data-zone="haut"></div>
+
   <main class="mural-grille">
     <section class="appel-courant">
       <span class="surtitre">Ticket appelé</span>
@@ -31,13 +36,19 @@
       <div id="guichet-courant" class="guichet-courant">En attente d'appel</div>
     </section>
 
-    <aside class="recents">
-      <h2 class="surtitre">Derniers appels</h2>
-      <ul id="recents"></ul>
-      <p id="recents-vide" class="recents-vide">Aucun appel pour le moment.</p>
-    </aside>
+    <div class="mural-colonne">
+      <aside class="recents">
+        <h2 class="surtitre">Derniers appels</h2>
+        <ul id="recents"></ul>
+        <p id="recents-vide" class="recents-vide">Aucun appel pour le moment.</p>
+      </aside>
+      <!-- Zone publicitaire « latéral » -->
+      <aside class="pub-lateral cachee" data-zone="lateral"></aside>
+    </div>
   </main>
 
+  <!-- Zone publicitaire « bas » (défilant) ; à défaut, la consigne fixe -->
+  <div class="pub-bas cachee" data-zone="bas"></div>
   <footer class="mural-pied">Merci de vous présenter au guichet indiqué dès l'appel de votre numéro.</footer>
 
   <script src="/shared/api.js"></script>

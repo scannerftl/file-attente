@@ -15,11 +15,14 @@ const AgentDAO = require('./dao/AgentDAO');
 const HabilitationDAO = require('./dao/HabilitationDAO');
 const ServiceDAO = require('./dao/ServiceDAO');
 const GuichetDAO = require('./dao/GuichetDAO');
+const MarqueDAO = require('./dao/MarqueDAO');
 
 const GestionHabilitation = require('./metier/GestionHabilitation');
 const ServiceNotification = require('./metier/ServiceNotification');
 const GestionnaireFile = require('./metier/GestionnaireFile');
 const Statistiques = require('./metier/Statistiques');
+const GestionMarque = require('./metier/GestionMarque');
+const path = require('path');
 
 /**
  * @param {object} [opts]
@@ -28,6 +31,7 @@ const Statistiques = require('./metier/Statistiques');
  * @param {object}  [opts.mysql]             options de connexion MySQL
  * @param {boolean} [opts.seed=true]
  * @param {object}  [opts.horloge]           horloge injectable
+ * @param {string}  [opts.cheminMarque]      fichier de personnalisation client (JSON)
  * @param {import('./db/connexion/Connexion')} [opts.connexion] connexion déjà ouverte (tests)
  * @returns {Promise<object>}
  */
@@ -55,6 +59,8 @@ async function creerContexte(opts = {}) {
     horloge,
   });
   const statistiques = new Statistiques({ ticketDAO, serviceDAO, cnx, horloge });
+  const marqueDAO = new MarqueDAO(opts.cheminMarque, path.join(__dirname, 'marques'));
+  const marque = new GestionMarque(marqueDAO, notification);
 
   return {
     connexion: cnx,
@@ -63,6 +69,7 @@ async function creerContexte(opts = {}) {
     notification,
     gestionnaire,
     statistiques,
+    marque,
   };
 }
 

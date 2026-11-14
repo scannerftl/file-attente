@@ -1,0 +1,27 @@
+{
+  "nom": "Agence",
+  "slogan": "Gestion de file d'attente",
+  "logo": "/shared/logo.svg",
+  "couleurs": { "principale": "#14285A", "secondaire": "#D4A437" },
+  "rotationSec": 8,
+  "messages": [
+    {
+      "id": "bienvenue",
+      "titre": "Bienvenue dans votre agence",
+      "texte": "Prenez un ticket à la borne, votre numéro s'affichera à l'écran.",
+      "image": "",
+      "zones": ["haut", "bas"],
+      "ecrans": ["borne", "mural"],
+      "actif": true
+    },
+    {
+      "id": "merci",
+      "titre": "Merci de votre visite",
+      "texte": "Conservez votre ticket jusqu'à votre passage au guichet.",
+      "image": "",
+      "zones": ["ticket", "bas"],
+      "ecrans": ["borne", "mural"],
+      "actif": true
+    }
+  ]
+}

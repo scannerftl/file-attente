@@ -22,6 +22,10 @@ module.exports = {
   // SQLite (développement)
   CHEMIN_BDD: process.env.CHEMIN_BDD || path.join(__dirname, 'db', 'file-attente.sqlite'),
 
+  // Personnalisation client (nom, logo, couleurs, messages publicitaires).
+  // Fichier écrit depuis l'écran d'administration ; absent = modèle par défaut.
+  CHEMIN_MARQUE: process.env.CHEMIN_MARQUE || path.join(__dirname, 'db', 'marque.json'),
+
   // MySQL (cible de production)
   MYSQL: {
     host: process.env.MYSQL_HOST || 'localhost',

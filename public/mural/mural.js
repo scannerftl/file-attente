@@ -58,6 +58,8 @@ const badge = $('#badge');
 connecterTempsReel(
   (ev) => {
     // Push : un appel a eu lieu → mise à jour instantanée + rechargement de l'historique.
+    // Personnalisation modifiée en administration → mise à jour immédiate.
+    if (ev.type === 'marque') Marque.charger();
     if (ev.type === 'appel') {
       afficherCourant(ev.ticket, true);
       rechargerEtat(false).catch(() => {});

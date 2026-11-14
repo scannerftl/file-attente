@@ -13,7 +13,7 @@ const { NB_APPELS_RECENTS, DELAI_ABANDON_MIN } = require('../config');
  * @param {object} ctx  contexte assemblé (voir contexte.js)
  */
 function creerRoutes(ctx) {
-  const { gestionnaire, statistiques, dao } = ctx;
+  const { gestionnaire, statistiques, dao, marque } = ctx;
   const r = express.Router();
 
   // Enveloppe async : erreurs métier → 400, autres → 500.
@@ -211,6 +211,28 @@ function creerRoutes(ctx) {
   r.get('/stats', geree(async (req, res) => {
     const { date } = req.query;
     res.json(await statistiques.calculerRapport(date));
+  }));
+
+  // --- Personnalisation client (marque, couleurs, messages publicitaires) ---
+  r.get('/marque', geree(async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.json(marque.lire());
+  }));
+
+  r.put('/marque', geree(async (req, res) => {
+    res.json(marque.enregistrer(req.body));
+  }));
+
+  r.delete('/marque', geree(async (req, res) => {
+    res.json(marque.reinitialiser());
+  }));
+
+  r.get('/marque/modeles', geree(async (req, res) => {
+    res.json(marque.modeles());
+  }));
+
+  r.get('/marque/modeles/:id', geree(async (req, res) => {
+    res.json(marque.modele(req.params.id));
   }));
 
   return r;

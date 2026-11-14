@@ -8,55 +8,69 @@
   <link rel="stylesheet" href="/shared/style.css" />
   <link rel="stylesheet" href="/borne/borne.css" />
   <script src="/shared/theme.js"></script>
+  <script src="/shared/marque.js"></script>
 </head>
-<body class="borne">
-  <header class="barre">
+<body class="borne" data-ecran="borne">
+  <!-- En-tête aux couleurs du client -->
+  <header class="barre barre-marque">
     <a class="marque" href="/">
-      <img class="marque-logo" src="/shared/logo.svg" alt="" />
-      <span class="marque-texte"><span class="marque-nom">Agence</span><span class="marque-sous">Gestion de file d'attente</span></span>
+      <span class="marque-logo" data-marque="logo"><img src="/shared/logo.svg" alt="" /></span>
+      <span class="marque-texte"><span class="marque-nom" data-marque="nom">Agence</span><span class="marque-sous" data-marque="slogan"></span></span>
     </a>
-    <span class="barre-sep"></span>
-    <span class="barre-titre">Borne d'accueil</span>
     <div class="barre-actions">
       <span id="badge" class="badge-connexion">connexion…</span>
       <button id="btn-theme" class="btn-icone" type="button"></button>
     </div>
   </header>
 
+  <!-- Zone publicitaire « haut » -->
+  <div class="pub-haut cachee" data-zone="haut"></div>
+
   <main class="borne-zone">
-    <!-- Vue 1 : choix du service -->
-    <section id="vue-accueil" class="borne-vue">
-      <div class="borne-titre">
-        <h1>Bienvenue</h1>
-        <p>Touchez le service souhaité pour retirer votre ticket.</p>
-      </div>
-      <div id="services" class="services"><!-- boutons injectés --></div>
-    </section>
+    <div class="borne-colonnes">
+      <div class="borne-principal">
+        <!-- Vue 1 : choix du service -->
+        <section id="vue-accueil" class="borne-vue">
+          <div class="borne-titre">
+            <h1>Bienvenue</h1>
+            <p>Touchez le service souhaité pour retirer votre ticket.</p>
+          </div>
+          <div id="services" class="services"><!-- boutons injectés --></div>
+        </section>
 
-    <!-- Vue 2 : confirmation + impression (retour auto après 5 s) -->
-    <section id="vue-ticket" class="borne-vue cachee">
-      <div class="borne-titre">
-        <span class="borne-ok"><svg class="ico"><use href="/shared/icones.svg#i-valider"/></svg></span>
-        <h1>Votre ticket est prêt</h1>
-        <p>Merci de patienter, votre numéro s'affichera à l'écran.</p>
+        <!-- Vue 2 : confirmation + impression (retour auto après 5 s) -->
+        <section id="vue-ticket" class="borne-vue cachee">
+          <div class="borne-titre">
+            <span class="borne-ok"><svg class="ico"><use href="/shared/icones.svg#i-valider"/></svg></span>
+            <h1>Votre ticket est prêt</h1>
+            <p>Merci de patienter, votre numéro s'affichera à l'écran.</p>
+          </div>
+
+          <div class="ticket-papier">
+            <div class="ticket-haut">
+              <span class="marque-logo" data-marque="logo"><img src="/shared/logo.svg" alt="" /></span>
+              <span data-marque="nom">Agence</span>
+            </div>
+            <div class="ticket-corps">
+              <span class="surtitre">Votre numéro</span>
+              <div class="ticket-num" id="ticket-num">000</div>
+              <div class="ticket-svc" id="ticket-svc">—</div>
+            </div>
+            <div class="ticket-pub cachee" id="ticket-pub"></div>
+            <div class="ticket-bas" id="ticket-date">—</div>
+          </div>
+
+          <p class="borne-aide">Retour à l'accueil dans <strong id="compte">5</strong> s</p>
+        </section>
       </div>
 
-      <div class="ticket-papier">
-        <div class="ticket-haut">
-          <img src="/shared/logo.svg" alt="" />
-          <span>Agence</span>
-        </div>
-        <div class="ticket-corps">
-          <span class="surtitre">Votre numéro</span>
-          <div class="ticket-num" id="ticket-num">000</div>
-          <div class="ticket-svc" id="ticket-svc">—</div>
-        </div>
-        <div class="ticket-bas" id="ticket-date">—</div>
-      </div>
-
-      <p class="borne-aide">Retour à l'accueil dans <strong id="compte">5</strong> s</p>
-    </section>
+      <!-- Zone publicitaire « latéral » -->
+      <aside class="pub-lateral cachee" data-zone="lateral"></aside>
+    </div>
   </main>
+
+  <!-- Zone publicitaire « bas » (défilant) -->
+  <div class="pub-bas cachee" data-zone="bas"></div>
 
   <script src="/shared/api.js"></script>
   <script src="/borne/borne.js"></script>

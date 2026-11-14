@@ -21,6 +21,8 @@ fidèlement les modèles (MCT/MOT, diagramme de classes, séquences, états, con
 
 - 🖥️ **Quatre interfaces** dédiées : borne, poste agent, écran mural (mode kiosque navigateur) et administration.
 - 🎨 **Charte graphique** sobre (bleu marine et or), thème clair et sombre, logo et icônes SVG.
+- 🏦 **Personnalisation client** : nom, logo, couleurs et messages publicitaires du client
+  (ex. une banque) sur la borne et l'écran mural, réglables depuis l'administration.
 - ⚡ **Temps réel** : quand un agent appelle le ticket suivant, l'écran mural s'actualise
   **instantanément** via WebSocket (repli automatique en polling 2 s).
 - 🔐 **Habilitations** : chaque agent ne traite que les services pour lesquels il est habilité.
@@ -73,8 +75,8 @@ bouton en haut à droite :
 
 | Élément | Valeur |
 | --- | --- |
-| Couleur principale | Bleu marine `#14285A` |
-| Couleur d'accent | Or `#D4A437` (appel en cours, guichet à rejoindre) |
+| Couleur principale | Bleu marine `#14285A` par défaut, remplacée par celle du client |
+| Couleur d'accent | Or `#D4A437` par défaut (appel en cours, guichet à rejoindre) |
 | Police | Inter (repli : police système) |
 | Thèmes | Clair par défaut, sombre automatique (`prefers-color-scheme`) ou forcé ; écran mural toujours sombre |
 | Logo | [`public/shared/logo.svg`](public/shared/logo.svg) — sert aussi de favicon |
@@ -82,9 +84,52 @@ bouton en haut à droite :
 
 Toutes les couleurs sont des variables CSS définies dans
 [`public/shared/style.css`](public/shared/style.css) : changer la couleur de marque se fait à
-un seul endroit. Le nom affiché (« Agence ») se trouve dans l'en-tête de chaque page HTML.
+un seul endroit, et sont dérivées des deux couleurs du client (`--marque`, `--marque-2`)
+appliquées par [`public/shared/marque.js`](public/shared/marque.js).
 L'icône d'un service est choisie d'après son code dans `public/shared/theme.js`
 (`iconeService`) ; un service inconnu reçoit une icône de ticket générique.
+
+## 🏦 Personnalisation client (marque et publicité)
+
+Les écrans publics (borne et écran mural) affichent l'identité du client de l'agence —
+par exemple une banque — et ses messages publicitaires. Tout se règle dans
+**Administration → Personnalisation client**, puis « Enregistrer et publier » : les écrans
+ouverts se mettent à jour immédiatement (WebSocket), sans rechargement.
+
+![Personnalisation client](docs/screenshots/personnalisation.png)
+
+| Réglage | Effet |
+| --- | --- |
+| Nom, slogan | En-tête de tous les écrans et ticket imprimé |
+| Logo | Image PNG, JPEG, WebP ou SVG (réduite automatiquement). Sans logo : initiales du client |
+| Couleur principale | En-têtes, boutons, bandeau haut, fond teinté de l'écran mural |
+| Couleur secondaire | Bandeau défilant, accents ; appel en cours sur le mural si assez visible |
+| Rotation | Durée d'affichage de chaque message (3 à 120 s) |
+
+La couleur du texte (blanc ou foncé) est calculée automatiquement pour rester lisible ;
+sur l'écran mural, la couleur de l'appel en cours est choisie parmi les couleurs du
+client selon son contraste avec le fond.
+
+**Zones publicitaires** — chaque message choisit ses zones et ses écrans :
+
+| Zone | Borne | Écran mural |
+| --- | --- | --- |
+| `haut` | Bandeau sous l'en-tête, messages en rotation | idem, en grand |
+| `lateral` | Panneau à droite des services (avec image) | Sous les derniers appels (avec image) |
+| `bas` | Bandeau défilant en pied d'écran | Bandeau défilant (remplace la consigne) |
+| `ticket` | Message imprimé sur le ticket | — |
+
+Une zone sans message actif est masquée. Des **modèles** sont fournis dans
+[`server/marques/`](server/marques/) (`defaut.json`, `uba-cameroun.json` — exemple
+avec des textes à remplacer) et se chargent depuis l'administration. La configuration
+publiée est enregistrée dans `server/db/marque.json` (variable `CHEMIN_MARQUE`), hors
+du dépôt git ; « Revenir au modèle par défaut » la supprime.
+
+API : `GET /api/marque`, `PUT /api/marque`, `DELETE /api/marque`,
+`GET /api/marque/modeles`, `GET /api/marque/modeles/:id`.
+
+> ⚠️ L'administration n'est pas protégée par mot de passe : limitez son accès au réseau
+> interne de l'agence.
 
 ## 🚀 Démarrage rapide
 
@@ -156,6 +201,7 @@ Copier `.env.example` en `.env` (ou exporter les variables). Principales options
 | Variable | Défaut | Description |
 | --- | --- | --- |
 | `PORT` | `3000` | Port HTTP |
+| `CHEMIN_MARQUE` | `server/db/marque.json` | Fichier de la personnalisation client publiée |
 | `DB_DRIVER` | `sqlite` | `sqlite` (dev) ou `mysql` (cible) |
 | `DELAI_ABANDON_MIN` | `5` | Délai (min) avant qu'un ticket appelé non clôturé soit abandonné |
 | `MYSQL_*` | — | Hôte, port, user, mot de passe, base (si `DB_DRIVER=mysql`) |
@@ -201,7 +247,8 @@ identique — la conception était indépendante de la technique.
 npm test
 ```
 
-`test/recette.test.js` implémente les tests **T1 → T8** (sur SQLite en mémoire).
+`test/recette.test.js` implémente les tests **T1 → T8** (sur SQLite en mémoire) ;
+`test/marque.test.js` couvre la personnalisation client (validation, modèles).
 Pour vérifier l'adaptateur MySQL, voir `npm run test:mysql` ci-dessus.
 
 ## 🖥️ Déploiement Windows

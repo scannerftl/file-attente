@@ -41,11 +41,13 @@ async function demarrer() {
     chemin: config.CHEMIN_BDD,
     mysql: config.MYSQL,
     seed: true,
+    cheminMarque: config.CHEMIN_MARQUE,
   });
 
   // 2) Application Express : API + fichiers des IHM.
   const app = express();
-  app.use(express.json());
+  // Limite relevée : la personnalisation client peut contenir des images (logo, visuels).
+  app.use(express.json({ limit: '12mb' }));
   app.use('/api', creerRoutes(ctx));
 
   // Couche présentation (les 3 IHM) servie en statique.
