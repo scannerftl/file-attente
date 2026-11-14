@@ -4,105 +4,129 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Administration — File d'attente</title>
+  <link rel="icon" type="image/svg+xml" href="/shared/logo.svg" />
   <link rel="stylesheet" href="/shared/style.css" />
   <link rel="stylesheet" href="/admin/admin.css" />
+  <script src="/shared/theme.js"></script>
 </head>
 <body class="admin">
-  <div class="admin-cadre glass">
-    <header class="admin-entete">
-      <h2>⚙️ Tableau de Bord</h2>
-      <a href="/" class="btn-retour">Retour à l'accueil</a>
-    </header>
+  <header class="barre">
+    <a class="marque" href="/">
+      <img class="marque-logo" src="/shared/logo.svg" alt="" />
+      <span class="marque-texte"><span class="marque-nom">Agence</span><span class="marque-sous">Gestion de file d'attente</span></span>
+    </a>
+    <span class="barre-sep"></span>
+    <span class="barre-titre">Administration</span>
+    <div class="barre-actions">
+      <a href="/" class="btn btn-secondaire btn-s"><svg class="ico ico-s"><use href="/shared/icones.svg#i-retour"/></svg> Accueil</a>
+      <button id="btn-theme" class="btn-icone" type="button"></button>
+    </div>
+  </header>
 
-    <main class="admin-content">
-      <section class="admin-section stats-section">
-        <div class="section-header">
-          <h3>Statistiques Journalières</h3>
-          <div class="date-picker">
-            <label for="date-stats">Date :</label>
-            <input type="date" id="date-stats" />
-            <button id="btn-charger" class="btn-primary">Charger</button>
-          </div>
-        </div>
-        
-        <div class="table-container">
-          <table class="stats-table">
-            <thead>
-              <tr>
-                <th>Service</th>
-                <th>Tickets traités</th>
-                <th>Attente Moyenne</th>
-                <th>Traitement Moyen</th>
-              </tr>
-            </thead>
-            <tbody id="stats-body">
-              <tr><td colspan="4" class="empty-state">Chargement des statistiques...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+  <main class="admin-page">
+    <div class="page-entete">
+      <div>
+        <span class="surtitre">Administration</span>
+        <h1>Tableau de bord</h1>
+      </div>
+      <div class="date-picker">
+        <label for="date-stats">Date</label>
+        <input type="date" id="date-stats" class="champ" />
+        <button id="btn-charger" class="btn btn-primaire" type="button">Afficher</button>
+      </div>
+    </div>
 
-      <section class="admin-section crud-section">
-        <h3>Gestion du Référentiel</h3>
-        <p class="crud-desc">Gérez les éléments de l'agence. (CRUD : Créer, Lire, Mettre à jour, Supprimer)</p>
-        <div class="crud-grid">
-          <!-- Services -->
-          <div class="crud-card glass">
-            <div class="crud-header">
-              <h4>Services</h4>
-              <button id="btn-add-service" class="btn-small">Ajouter</button>
-            </div>
-            <ul id="list-services" class="crud-list"></ul>
-          </div>
-          
-          <!-- Agents -->
-          <div class="crud-card glass">
-            <div class="crud-header">
-              <h4>Agents</h4>
-              <button id="btn-add-agent" class="btn-small">Ajouter</button>
-            </div>
-            <ul id="list-agents" class="crud-list"></ul>
-          </div>
-          
-          <!-- Guichets -->
-          <div class="crud-card glass">
-            <div class="crud-header">
-              <h4>Guichets</h4>
-              <button id="btn-add-guichet" class="btn-small">Ajouter</button>
-            </div>
-            <ul id="list-guichets" class="crud-list"></ul>
-          </div>
-        </div>
-      </section>
+    <!-- Indicateurs du jour -->
+    <section class="kpis">
+      <div class="carte kpi"><span class="kpi-lib">Tickets traités</span><span id="kpi-tickets" class="kpi-val">—</span></div>
+      <div class="carte kpi"><span class="kpi-lib">Attente moyenne</span><span id="kpi-attente" class="kpi-val">—</span></div>
+      <div class="carte kpi"><span class="kpi-lib">Traitement moyen</span><span id="kpi-traitement" class="kpi-val">—</span></div>
+      <div class="carte kpi"><span class="kpi-lib">Services actifs</span><span id="kpi-services" class="kpi-val">—</span></div>
+    </section>
 
-      <section class="admin-section habil-section">
-        <h3>Habilitations (Agent ↔ Service)</h3>
-        <p class="crud-desc">Cochez les services que chaque agent est autorisé à traiter (RG3).</p>
-        <div class="table-container">
-          <table class="stats-table habil-table" id="habil-table">
-            <tbody>
-              <tr><td class="empty-state">Chargement des habilitations...</td></tr>
-            </tbody>
-          </table>
+    <section class="carte bloc">
+      <div class="bloc-entete">
+        <div>
+          <h2>Statistiques par service</h2>
+          <p class="bloc-desc">Tickets clôturés à la date choisie.</p>
         </div>
-      </section>
+      </div>
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th class="num">Tickets traités</th>
+              <th class="num">Attente moyenne</th>
+              <th class="num">Traitement moyen</th>
+            </tr>
+          </thead>
+          <tbody id="stats-body">
+            <tr><td colspan="4" class="empty-state">Chargement des statistiques…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-      <section class="admin-section actions-section">
-        <h3>Actions Manuelles</h3>
-        <div class="action-card glass">
-          <div class="action-info">
-            <h4>Purger les abandons</h4>
-            <p>Marque comme "abandonnés" les tickets appelés depuis plus de X minutes sans avoir été clôturés.</p>
+    <section class="bloc-groupe">
+      <div class="groupe-entete">
+        <h2>Référentiel de l'agence</h2>
+        <p class="bloc-desc">Créez, modifiez ou supprimez les services, agents et guichets.</p>
+      </div>
+      <div class="crud-grid">
+        <div class="carte crud-card">
+          <div class="crud-header">
+            <h3>Services</h3>
+            <button id="btn-add-service" class="btn btn-secondaire btn-s" type="button"><svg class="ico ico-s"><use href="/shared/icones.svg#i-plus"/></svg> Ajouter</button>
           </div>
-          <div class="action-controls">
-            <label>Délai (min) : <input type="number" id="delai-abandon" value="5" min="1" max="60"></label>
-            <button id="btn-purge" class="btn-danger">Lancer la purge</button>
-          </div>
+          <ul id="list-services" class="crud-list"></ul>
         </div>
-        <p id="action-message" class="action-message"></p>
-      </section>
-    </main>
-  </div>
+        <div class="carte crud-card">
+          <div class="crud-header">
+            <h3>Agents</h3>
+            <button id="btn-add-agent" class="btn btn-secondaire btn-s" type="button"><svg class="ico ico-s"><use href="/shared/icones.svg#i-plus"/></svg> Ajouter</button>
+          </div>
+          <ul id="list-agents" class="crud-list"></ul>
+        </div>
+        <div class="carte crud-card">
+          <div class="crud-header">
+            <h3>Guichets</h3>
+            <button id="btn-add-guichet" class="btn btn-secondaire btn-s" type="button"><svg class="ico ico-s"><use href="/shared/icones.svg#i-plus"/></svg> Ajouter</button>
+          </div>
+          <ul id="list-guichets" class="crud-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="carte bloc">
+      <div class="bloc-entete">
+        <div>
+          <h2>Habilitations</h2>
+          <p class="bloc-desc">Cochez les services que chaque agent est autorisé à traiter (RG3).</p>
+        </div>
+      </div>
+      <div class="table-container">
+        <table class="table habil-table" id="habil-table">
+          <tbody>
+            <tr><td class="empty-state">Chargement des habilitations…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="carte bloc action-card">
+      <span class="pastille pastille-alerte"><svg class="ico"><use href="/shared/icones.svg#i-balai"/></svg></span>
+      <div class="action-info">
+        <h2>Purger les abandons</h2>
+        <p class="bloc-desc">Marque comme « abandonnés » les tickets appelés depuis plus de X minutes sans avoir été clôturés.</p>
+        <p id="action-message" class="action-message" role="status"></p>
+      </div>
+      <div class="action-controls">
+        <label>Délai (min) <input type="number" id="delai-abandon" class="champ" value="5" min="1" max="60"></label>
+        <button id="btn-purge" class="btn btn-danger" type="button">Lancer la purge</button>
+      </div>
+    </section>
+  </main>
 
   <script src="/shared/api.js"></script>
   <script src="/admin/admin.js"></script>

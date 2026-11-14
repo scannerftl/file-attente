@@ -1,4 +1,6 @@
-# 🎫 Système de file d'attente d'agence
+<img src="public/shared/logo.svg" width="64" alt="Logo" />
+
+# Système de file d'attente d'agence
 
 > Gestion de file d'attente pour une agence : **borne** de prise de ticket, **poste agent** pour appeler les clients, et **écran mural** qui s'actualise en temps réel.
 
@@ -17,7 +19,8 @@ fidèlement les modèles (MCT/MOT, diagramme de classes, séquences, états, con
 
 ## ✨ Fonctionnalités
 
-- 🖥️ **Trois interfaces** dédiées : borne, poste agent, écran mural (mode kiosque navigateur).
+- 🖥️ **Quatre interfaces** dédiées : borne, poste agent, écran mural (mode kiosque navigateur) et administration.
+- 🎨 **Charte graphique** sobre (bleu marine et or), thème clair et sombre, logo et icônes SVG.
 - ⚡ **Temps réel** : quand un agent appelle le ticket suivant, l'écran mural s'actualise
   **instantanément** via WebSocket (repli automatique en polling 2 s).
 - 🔐 **Habilitations** : chaque agent ne traite que les services pour lesquels il est habilité.
@@ -27,32 +30,61 @@ fidèlement les modèles (MCT/MOT, diagramme de classes, séquences, états, con
 - 🔄 **SGBD interchangeable** : SQLite en développement, MySQL en cible — **sans toucher
   au code métier** (bascule par variable d'environnement).
 
-## 🧩 Les trois interfaces
+## 🧩 Les interfaces
 
 | Interface | URL | Rôle |
 | --- | --- | --- |
 | 🎟️ **Borne** | `/borne/` | Le client choisit un service et retire un ticket numéroté |
 | 👩‍💼 **Poste agent** | `/poste/` | L'agent (avec son guichet) appelle le suivant et clôture les tickets |
-| 📺 **Écran mural** | `/mural/` | Affiche les tickets appelés, actualisé en temps réel |
+| 📺 **Écran mural** | `/mural/` | Affiche le ticket appelé et les derniers appels, actualisé en temps réel |
+| 📊 **Administration** | `/admin/` | Statistiques du jour, services, agents, guichets, habilitations, purge des abandons |
 
 ## 🖼️ Aperçu
 
-**Temps réel (patron Observateur)** — un ticket pris à la borne s'affiche instantanément
-sur l'écran mural dès que l'agent l'appelle, via WebSocket :
+**Temps réel (patron Observateur)** — quand l'agent appelle le ticket suivant, l'écran
+mural se met à jour instantanément via WebSocket :
 
-![Push temps réel borne → mural](docs/screenshots/demo-temps-reel.gif)
+![Poste agent → écran mural en temps réel](docs/screenshots/demo-temps-reel.gif)
 
-**Écran mural** — affichage du hall, actualisé en temps réel :
+**Écran mural** — affichage de la salle d'attente, lisible à distance :
 
 ![Écran mural](docs/screenshots/mural.png)
 
-| 🎟️ Borne (prise de ticket) | 👩‍💼 Poste agent (file + appel) |
+| 🎟️ Borne — choix du service | 🎫 Borne — ticket émis |
 | --- | --- |
-| ![Borne](docs/screenshots/borne.png) | ![Poste agent](docs/screenshots/poste.png) |
+| ![Borne](docs/screenshots/borne.png) | ![Ticket émis](docs/screenshots/borne-ticket.png) |
+
+| 👩‍💼 Poste agent | 📊 Administration |
+| --- | --- |
+| ![Poste agent](docs/screenshots/poste.png) | ![Administration](docs/screenshots/admin.png) |
+
+**Thème sombre** — appliqué automatiquement selon le réglage du système, ou forcé avec le
+bouton en haut à droite :
+
+| Poste agent (sombre) | Administration (sombre) |
+| --- | --- |
+| ![Poste agent, thème sombre](docs/screenshots/poste-sombre.png) | ![Administration, thème sombre](docs/screenshots/admin-sombre.png) |
 
 **Accueil** — choix de l'interface à ouvrir :
 
 ![Accueil](docs/screenshots/accueil.png)
+
+## 🎨 Charte graphique
+
+| Élément | Valeur |
+| --- | --- |
+| Couleur principale | Bleu marine `#14285A` |
+| Couleur d'accent | Or `#D4A437` (appel en cours, guichet à rejoindre) |
+| Police | Inter (repli : police système) |
+| Thèmes | Clair par défaut, sombre automatique (`prefers-color-scheme`) ou forcé ; écran mural toujours sombre |
+| Logo | [`public/shared/logo.svg`](public/shared/logo.svg) — sert aussi de favicon |
+| Icônes | Sprite SVG [`public/shared/icones.svg`](public/shared/icones.svg) (interfaces, services, actions) |
+
+Toutes les couleurs sont des variables CSS définies dans
+[`public/shared/style.css`](public/shared/style.css) : changer la couleur de marque se fait à
+un seul endroit. Le nom affiché (« Agence ») se trouve dans l'en-tête de chaque page HTML.
+L'icône d'un service est choisie d'après son code dans `public/shared/theme.js`
+(`iconeService`) ; un service inconnu reçoit une icône de ticket générique.
 
 ## 🚀 Démarrage rapide
 
@@ -69,6 +101,7 @@ Puis ouvrir dans un navigateur :
 - Borne : <http://localhost:3000/borne/>
 - Poste agent : <http://localhost:3000/poste/>
 - Écran mural : <http://localhost:3000/mural/>
+- Administration : <http://localhost:3000/admin/>
 
 > 💡 **Démo** : ouvrez la borne, le poste et l'écran mural côte à côte. Prenez un ticket
 > sur la borne → il apparaît dans la file du poste ; cliquez « Appeler le suivant » →
@@ -83,7 +116,8 @@ Puis ouvrir dans un navigateur :
 ## 🏗️ Architecture en 3 couches
 
 ```
-public/              ← PRÉSENTATION : IHM Borne / Poste agent / Écran mural
+public/              ← PRÉSENTATION : IHM Borne / Poste agent / Écran mural / Admin
+public/shared/       ← Charte : style.css (jetons de couleur), logo, icônes, thème
 server/api/          ← Contrôleurs HTTP minces (traduisent HTTP ⇄ métier)
 server/ws/           ← Adaptateur WebSocket (patron Observateur)
 server/metier/       ← MÉTIER : GestionnaireFile, GestionHabilitation,

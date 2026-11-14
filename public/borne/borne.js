@@ -15,7 +15,13 @@ async function chargerServices() {
   zone.innerHTML = '';
   for (const s of services) {
     const b = document.createElement('button');
-    b.textContent = s.libelle;
+    b.type = 'button';
+    b.innerHTML =
+      `<span class="pastille"><svg class="ico"><use href="/shared/icones.svg#${iconeService(s.code)}"/></svg></span>` +
+      `<span class="svc-texte"><span class="svc-nom"></span><span class="svc-code"></span></span>` +
+      `<svg class="ico ico-fleche"><use href="/shared/icones.svg#i-chevron"/></svg>`;
+    b.querySelector('.svc-nom').textContent = s.libelle;
+    b.querySelector('.svc-code').textContent = s.code;
     b.onclick = () => prendreTicket(s.code);
     zone.appendChild(b);
   }
@@ -33,6 +39,10 @@ async function prendreTicket(code) {
 function afficherTicket(ticket) {
   $('#ticket-num').textContent = String(ticket.numero).padStart(3, '0');
   $('#ticket-svc').textContent = servicesConnus[ticket.codeService] || ticket.codeService;
+  const d = ticket.heurePrise ? new Date(ticket.heurePrise) : new Date();
+  $('#ticket-date').textContent =
+    d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+    ' · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   $('#vue-accueil').classList.add('cachee');
   $('#vue-ticket').classList.remove('cachee');
 
@@ -56,7 +66,7 @@ connecterTempsReel(
   () => {},
   (etat) => {
     badge.className = 'badge-connexion ' + (etat === 'ok' ? 'ok' : 'ko');
-    badge.textContent = etat === 'ok' ? 'en ligne' : 'hors ligne';
+    badge.textContent = etat === 'ok' ? 'En ligne' : 'Hors ligne';
   }
 );
 

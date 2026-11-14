@@ -3,31 +3,57 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Système de file d'attente</title>
+  <title>Agence — File d'attente</title>
+  <link rel="icon" type="image/svg+xml" href="/shared/logo.svg" />
   <link rel="stylesheet" href="/shared/style.css" />
+  <script src="/shared/theme.js"></script>
 </head>
 <body>
-  <div class="accueil">
-    <h1>Système de file d'attente d'agence</h1>
-    <p>Choisissez l'interface à ouvrir (chaque appareil ouvre la sienne en plein écran).</p>
+  <header class="barre">
+    <a class="marque" href="/">
+      <img class="marque-logo" src="/shared/logo.svg" alt="" />
+      <span class="marque-texte"><span class="marque-nom">Agence</span><span class="marque-sous">Gestion de file d'attente</span></span>
+    </a>
+    <div class="barre-actions">
+      <button id="btn-theme" class="btn-icone" type="button"></button>
+    </div>
+  </header>
+
+  <main class="accueil">
+    <div class="accueil-entete">
+      <span class="surtitre">Accueil</span>
+      <h1>Choisissez l'interface à ouvrir</h1>
+      <p>Chaque appareil de l'agence ouvre son interface en plein écran : la borne dans le hall, le poste au guichet, l'écran mural en salle d'attente.</p>
+    </div>
+
     <div class="cartes">
-      <a class="carte glass" href="/borne/">
-        <h2>🖥️ Borne</h2>
-        <p>Écran tactile du hall : le client choisit son service et prend un ticket.</p>
+      <a class="carte carte-lien" href="/borne/">
+        <span class="pastille"><svg class="ico"><use href="/shared/icones.svg#i-borne"/></svg></span>
+        <h2>Borne</h2>
+        <p>Écran tactile du hall : le client choisit son service et retire un ticket numéroté.</p>
+        <span class="ouvrir">Ouvrir <svg class="ico ico-s"><use href="/shared/icones.svg#i-fleche"/></svg></span>
       </a>
-      <a class="carte glass" href="/poste/">
-        <h2>👩‍💼 Poste agent</h2>
-        <p>Guichet : l'agent voit sa file et appelle le ticket suivant.</p>
+      <a class="carte carte-lien" href="/poste/">
+        <span class="pastille"><svg class="ico"><use href="/shared/icones.svg#i-poste"/></svg></span>
+        <h2>Poste agent</h2>
+        <p>Au guichet : l'agent consulte sa file, appelle le ticket suivant et le clôture.</p>
+        <span class="ouvrir">Ouvrir <svg class="ico ico-s"><use href="/shared/icones.svg#i-fleche"/></svg></span>
       </a>
-      <a class="carte glass" href="/mural/">
-        <h2>📺 Écran mural</h2>
-        <p>Affichage du hall : quel ticket est appelé à quel guichet.</p>
+      <a class="carte carte-lien" href="/mural/">
+        <span class="pastille"><svg class="ico"><use href="/shared/icones.svg#i-mural"/></svg></span>
+        <h2>Écran mural</h2>
+        <p>Salle d'attente : affiche en temps réel le ticket appelé et son guichet.</p>
+        <span class="ouvrir">Ouvrir <svg class="ico ico-s"><use href="/shared/icones.svg#i-fleche"/></svg></span>
       </a>
-      <a class="carte glass" href="/admin/">
-        <h2>⚙️ Administration</h2>
-        <p>Tableau de bord : consulter les statistiques et purger les tickets.</p>
+      <a class="carte carte-lien" href="/admin/">
+        <span class="pastille"><svg class="ico"><use href="/shared/icones.svg#i-admin"/></svg></span>
+        <h2>Administration</h2>
+        <p>Statistiques du jour, services, agents, guichets et habilitations.</p>
+        <span class="ouvrir">Ouvrir <svg class="ico ico-s"><use href="/shared/icones.svg#i-fleche"/></svg></span>
       </a>
     </div>
-  </div>
+
+    <p class="accueil-pied">Les écrans se mettent à jour en temps réel (WebSocket), avec repli automatique toutes les 2 secondes.</p>
+  </main>
 </body>
 </html>

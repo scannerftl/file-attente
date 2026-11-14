@@ -4,41 +4,62 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Poste agent — File d'attente</title>
+  <link rel="icon" type="image/svg+xml" href="/shared/logo.svg" />
   <link rel="stylesheet" href="/shared/style.css" />
   <link rel="stylesheet" href="/poste/poste.css" />
+  <script src="/shared/theme.js"></script>
 </head>
 <body class="poste">
+  <header class="barre">
+    <a class="marque" href="/">
+      <img class="marque-logo" src="/shared/logo.svg" alt="" />
+      <span class="marque-texte"><span class="marque-nom">Agence</span><span class="marque-sous">Gestion de file d'attente</span></span>
+    </a>
+    <span class="barre-sep"></span>
+    <span class="barre-titre">Poste agent — <span id="titre-guichet">Guichet ?</span></span>
+    <div class="barre-actions">
+      <span id="badge" class="badge-connexion">connexion…</span>
+      <button id="btn-theme" class="btn-icone" type="button"></button>
+    </div>
+  </header>
+
   <!-- Le poste est rattaché à un agent + un guichet (contexte du poste). -->
-  <div class="config-bar">
-    <label>Agent
-      <select id="sel-agent"></select>
-    </label>
-    <label>Guichet
-      <select id="sel-guichet"></select>
-    </label>
-    <span id="nom-agent" class="nom-agent"></span>
+  <div class="poste-config">
+    <label>Agent <select id="sel-agent" class="champ"></select></label>
+    <label>Guichet <select id="sel-guichet" class="champ"></select></label>
   </div>
 
-  <main class="poste-cadre">
-    <header class="poste-entete">POSTE AGENT — <span id="titre-guichet">Guichet ?</span></header>
+  <main class="poste-grille">
+    <section class="carte poste-action">
+      <div class="carte-entete">
+        <h2>Ticket en cours</h2>
+        <span id="nom-agent" class="nom-agent"></span>
+      </div>
+      <div id="en-cours" class="en-cours vide">
+        <div class="en-cours-num">—</div>
+        <div class="en-cours-svc">Aucun ticket en cours</div>
+      </div>
+      <div class="poste-boutons">
+        <button id="btn-appeler" class="btn btn-primaire btn-l" type="button">
+          <svg class="ico"><use href="/shared/icones.svg#i-appel"/></svg> Appeler le suivant
+        </button>
+        <button id="btn-cloturer" class="btn btn-secondaire btn-l" type="button" disabled>
+          <svg class="ico"><use href="/shared/icones.svg#i-valider"/></svg> Clôturer le ticket
+        </button>
+      </div>
+      <p id="message" class="message" role="status"></p>
+    </section>
 
-    <section class="bloc">
-      <h2>File en attente (mes services)</h2>
+    <section class="carte poste-file">
+      <div class="carte-entete">
+        <h2>File d'attente <span class="sous">mes services</span></h2>
+        <span id="file-compte" class="compteur">0</span>
+      </div>
       <ul id="file" class="file"><!-- lignes injectées --></ul>
       <p id="file-vide" class="vide cachee">Aucun ticket en attente.</p>
     </section>
-
-    <section class="bloc">
-      <h2>En cours</h2>
-      <div id="en-cours" class="en-cours vide">Aucun ticket en cours</div>
-      <button id="btn-cloturer" class="btn-cloturer" disabled>Clôturer le ticket</button>
-    </section>
-
-    <button id="btn-appeler" class="btn-appeler">APPELER LE SUIVANT</button>
-    <p id="message" class="message"></p>
   </main>
 
-  <span id="badge" class="badge-connexion">•</span>
   <script src="/shared/api.js"></script>
   <script src="/poste/poste.js"></script>
 </body>

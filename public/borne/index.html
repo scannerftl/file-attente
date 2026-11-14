@@ -4,33 +4,60 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Borne — File d'attente</title>
+  <link rel="icon" type="image/svg+xml" href="/shared/logo.svg" />
   <link rel="stylesheet" href="/shared/style.css" />
   <link rel="stylesheet" href="/borne/borne.css" />
+  <script src="/shared/theme.js"></script>
 </head>
 <body class="borne">
-  <div class="borne-cadre">
-    <header class="borne-entete">BORNE — écran tactile</header>
+  <header class="barre">
+    <a class="marque" href="/">
+      <img class="marque-logo" src="/shared/logo.svg" alt="" />
+      <span class="marque-texte"><span class="marque-nom">Agence</span><span class="marque-sous">Gestion de file d'attente</span></span>
+    </a>
+    <span class="barre-sep"></span>
+    <span class="barre-titre">Borne d'accueil</span>
+    <div class="barre-actions">
+      <span id="badge" class="badge-connexion">connexion…</span>
+      <button id="btn-theme" class="btn-icone" type="button"></button>
+    </div>
+  </header>
 
+  <main class="borne-zone">
     <!-- Vue 1 : choix du service -->
     <section id="vue-accueil" class="borne-vue">
-      <h1>Bienvenue</h1>
+      <div class="borne-titre">
+        <h1>Bienvenue</h1>
+        <p>Touchez le service souhaité pour retirer votre ticket.</p>
+      </div>
       <div id="services" class="services"><!-- boutons injectés --></div>
-      <p class="borne-aide">Touchez le service souhaité</p>
     </section>
 
     <!-- Vue 2 : confirmation + impression (retour auto après 5 s) -->
     <section id="vue-ticket" class="borne-vue cachee">
-      <h1>Votre ticket</h1>
-      <div class="ticket-impression">
-        <div class="ticket-num" id="ticket-num">000</div>
-        <div class="ticket-svc" id="ticket-svc">—</div>
-        <div class="ticket-info">Merci de patienter, vous serez appelé à l'écran.</div>
+      <div class="borne-titre">
+        <span class="borne-ok"><svg class="ico"><use href="/shared/icones.svg#i-valider"/></svg></span>
+        <h1>Votre ticket est prêt</h1>
+        <p>Merci de patienter, votre numéro s'affichera à l'écran.</p>
       </div>
-      <p class="borne-aide">Impression du ticket… retour à l'accueil dans <span id="compte">5</span> s</p>
-    </section>
-  </div>
 
-  <span id="badge" class="badge-connexion">•</span>
+      <div class="ticket-papier">
+        <div class="ticket-haut">
+          <img src="/shared/logo.svg" alt="" />
+          <span>Agence</span>
+        </div>
+        <div class="ticket-corps">
+          <span class="surtitre">Votre numéro</span>
+          <div class="ticket-num" id="ticket-num">000</div>
+          <div class="ticket-svc" id="ticket-svc">—</div>
+        </div>
+        <div class="ticket-bas" id="ticket-date">—</div>
+      </div>
+
+      <p class="borne-aide">Retour à l'accueil dans <strong id="compte">5</strong> s</p>
+    </section>
+  </main>
+
   <script src="/shared/api.js"></script>
   <script src="/borne/borne.js"></script>
 </body>

@@ -22,13 +22,30 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${m}m ${s.toString().padStart(2, '0')}s`;
   }
 
+  // Indicateurs globaux de la journée (moyennes pondérées par le nombre de tickets).
+  function majKpis(stats) {
+    const total = stats.reduce((n, s) => n + (s.nbTickets || 0), 0);
+    const moyenne = (cle) => {
+      let somme = 0, poids = 0;
+      stats.forEach(s => { if (s[cle] != null) { somme += s[cle] * s.nbTickets; poids += s.nbTickets; } });
+      return poids ? somme / poids : null;
+    };
+    document.getElementById('kpi-tickets').textContent = total;
+    document.getElementById('kpi-attente').textContent = formaterDuree(moyenne('attenteMoy'));
+    document.getElementById('kpi-traitement').textContent = formaterDuree(moyenne('traitementMoy'));
+    document.getElementById('kpi-services').textContent = stats.length;
+  }
+
   async function chargerStats() {
     tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Chargement...</td></tr>';
     try {
       const res = await fetch(`/api/stats?date=${dateInput.value}`);
       if (!res.ok) throw new Error(`Erreur HTTP: ${res.status}`);
       const stats = await res.json();
-      
+      const services = await fetch('/api/services').then(r => r.json()).catch(() => []);
+      const libelles = Object.fromEntries(services.map(x => [x.code, x.libelle]));
+      majKpis(stats || []);
+
       if (!stats || stats.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Aucune donnée pour cette date.</td></tr>';
         return;
@@ -38,16 +55,20 @@ document.addEventListener('DOMContentLoaded', () => {
       stats.forEach(s => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><strong>${s.codeService}</strong></td>
-          <td>${s.nbTickets}</td>
-          <td>${formaterDuree(s.attenteMoy)}</td>
-          <td>${formaterDuree(s.traitementMoy)}</td>
+          <td><span class="svc-cell">
+            <span class="pastille"><svg class="ico"><use href="/shared/icones.svg#${iconeService(s.codeService)}"/></svg></span>
+            <span><strong>${libelles[s.codeService] || s.codeService}</strong> <span class="item-subtitle">${s.codeService}</span></span>
+          </span></td>
+          <td class="num">${s.nbTickets}</td>
+          <td class="num">${formaterDuree(s.attenteMoy)}</td>
+          <td class="num">${formaterDuree(s.traitementMoy)}</td>
         `;
         tbody.appendChild(tr);
       });
     } catch (e) {
       console.error(e);
-      tbody.innerHTML = '<tr><td colspan="4" class="empty-state" style="color: #ef4444;">Erreur lors du chargement des statistiques.</td></tr>';
+      majKpis([]);
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state texte-erreur">Erreur lors du chargement des statistiques.</td></tr>';
     }
   }
 
@@ -66,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error('Erreur API');
       const data = await res.json();
       
-      actionMessage.style.color = '#10b981';
+      actionMessage.className = 'action-message ok';
       actionMessage.textContent = `Succès : ${data.nb} ticket(s) abandonné(s) purgé(s).`;
       
       // Refresh stats in case it changed today's data
@@ -75,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {
       console.error(e);
-      actionMessage.style.color = '#ef4444';
+      actionMessage.className = 'action-message ko';
       actionMessage.textContent = 'Erreur lors de la purge.';
     } finally {
       btnPurge.disabled = false;
@@ -106,6 +127,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return data;
   }
 
+  // Libellés lisibles pour chaque élément du référentiel.
+  function titreItem(type, item) {
+    if (type === 'guichets') return `Guichet ${item.numero}`;
+    return item[endpoints[type].name];
+  }
+  function sousTitreItem(type, item) {
+    if (type === 'services') return `${item.code} · durée cible ${item.dureeCible} min`;
+    if (type === 'agents') return `${item.matricule}${item.services && item.services.length ? ' · ' + item.services.join(', ') : ''}`;
+    return item.etat === 'ouvert' ? 'Ouvert' : 'Fermé';
+  }
+
   async function loadList(type) {
     const ep = endpoints[type];
     const ul = document.getElementById(ep.listId);
@@ -121,12 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const li = document.createElement('li');
         li.innerHTML = `
           <div class="item-info">
-            <span class="item-title">${item[ep.name]}</span>
-            <span class="item-subtitle">ID: ${item[ep.id]}${ep.extra ? ` | ${item[ep.extra]}` : ''}</span>
+            <span class="item-title">${titreItem(type, item)}</span>
+            <span class="item-subtitle">${sousTitreItem(type, item)}</span>
           </div>
           <div class="item-actions">
-            <button class="btn-icon edit" title="Modifier">✏️</button>
-            <button class="btn-icon delete" data-id="${item[ep.id]}" title="Supprimer">❌</button>
+            <button class="btn-icone edit" type="button" title="Modifier" aria-label="Modifier"><svg class="ico"><use href="/shared/icones.svg#i-modifier"/></svg></button>
+            <button class="btn-icone danger delete" type="button" data-id="${item[ep.id]}" title="Supprimer" aria-label="Supprimer"><svg class="ico"><use href="/shared/icones.svg#i-supprimer"/></svg></button>
           </div>
         `;
         li.querySelector('.edit').addEventListener('click', () => showEditForm(type, item, li));
@@ -135,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } catch (e) {
       console.error(e);
-      ul.innerHTML = '<li><span style="color: #ef4444;">Erreur</span></li>';
+      ul.innerHTML = '<li><span class="item-subtitle texte-erreur">Erreur de chargement</span></li>';
     }
   }
 
@@ -175,11 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     li.innerHTML = `
       <form class="crud-form">
-        <span class="item-subtitle">ID: ${id}</span>
+        <span class="item-subtitle">${titreItem(type, item)}</span>
         ${inputsHTML}
         <div class="crud-form-actions">
-          <button type="submit" class="btn-primary">Enregistrer</button>
-          <button type="button" class="btn-danger cancel">Annuler</button>
+          <button type="submit" class="btn btn-primaire btn-s">Enregistrer</button>
+          <button type="button" class="btn btn-secondaire btn-s cancel">Annuler</button>
         </div>
       </form>
     `;
@@ -216,10 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (existing) return; // already open
     
     const li = document.createElement('li');
-    li.style.display = 'block';
-    li.style.padding = '0';
-    li.style.background = 'transparent';
-    li.style.border = 'none';
+    li.style.padding = '4px 0';
     
     let inputsHTML = '';
     if (type === 'services') {
@@ -247,8 +276,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <form class="crud-form" id="form-add-${type}">
         ${inputsHTML}
         <div class="crud-form-actions">
-          <button type="submit" class="btn-primary">Valider</button>
-          <button type="button" class="btn-danger cancel">Annuler</button>
+          <button type="submit" class="btn btn-primaire btn-s">Ajouter</button>
+          <button type="button" class="btn btn-secondaire btn-s cancel">Annuler</button>
         </div>
       </form>
     `;
@@ -311,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Une ligne par agent, une case à cocher par service.
       agents.forEach(a => {
-        html += `<tr><td><strong>${a.nom}</strong><br><span class="item-subtitle">${a.matricule}</span></td>`;
+        html += `<tr><td><strong>${a.nom}</strong> <span class="item-subtitle">${a.matricule}</span></td>`;
         services.forEach(s => {
           const coche = actives.has(`${a.matricule}|${s.code}`) ? 'checked' : '';
           html += `<td class="habil-cell"><input type="checkbox" ${coche}
@@ -327,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } catch (e) {
       console.error(e);
-      habilTable.innerHTML = '<tbody><tr><td class="empty-state" style="color:#ef4444;">Erreur lors du chargement.</td></tr></tbody>';
+      habilTable.innerHTML = '<tbody><tr><td class="empty-state texte-erreur">Erreur lors du chargement.</td></tr></tbody>';
     }
   }
 
