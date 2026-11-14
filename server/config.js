@@ -25,6 +25,8 @@ module.exports = {
   // Personnalisation client (nom, logo, couleurs, messages publicitaires).
   // Fichier écrit depuis l'écran d'administration ; absent = modèle par défaut.
   CHEMIN_MARQUE: process.env.CHEMIN_MARQUE || path.join(__dirname, 'db', 'marque.json'),
+  // Médias publicitaires envoyés (images, GIF animés, vidéos), servis sous /medias/.
+  DOSSIER_MEDIAS: process.env.DOSSIER_MEDIAS || path.join(__dirname, 'db', 'medias'),
 
   // MySQL (cible de production)
   MYSQL: {

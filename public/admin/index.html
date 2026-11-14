@@ -111,9 +111,6 @@
               <span class="couleur-ligne"><input type="color" id="perso-c2"><input id="perso-c2-hex" class="champ hex" maxlength="7"></span>
               <span class="aide">Bandeau défilant, accents.</span>
             </label>
-            <label class="champ-libelle">Rotation des messages
-              <span class="couleur-ligne"><input type="number" id="perso-rotation" class="champ" min="3" max="120"> <span class="aide">secondes</span></span>
-            </label>
           </div>
           <div class="apercu" id="perso-apercu">
             <div class="apercu-barre"><span class="apercu-logo"></span><span class="apercu-nom"></span></div>
@@ -123,6 +120,38 @@
             </div>
             <div class="apercu-bas">Bandeau défilant — message publicitaire</div>
           </div>
+        </div>
+
+        <!-- Animations -->
+        <div class="perso-bloc">
+          <h3>Animations</h3>
+          <div class="perso-couleurs">
+            <label class="champ-libelle">Transition entre les messages
+              <select id="perso-transition" class="champ">
+                <option value="fondu">Fondu enchaîné</option>
+                <option value="glissement">Glissement</option>
+                <option value="zoom">Zoom (avec zoom lent sur les images)</option>
+                <option value="aucune">Aucune</option>
+              </select>
+              <span class="aide">Bandeau haut, panneau latéral et écran de veille.</span>
+            </label>
+            <label class="champ-libelle">Durée d'affichage par défaut
+              <span class="couleur-ligne"><input type="number" id="perso-rotation" class="champ" min="3" max="120"> <span class="aide">secondes</span></span>
+              <span class="aide">Une vidéo est lue jusqu'au bout, sauf durée fixée sur le message.</span>
+            </label>
+            <label class="champ-libelle">Vitesse du bandeau défilant
+              <select id="perso-vitesse" class="champ">
+                <option value="lente">Lente</option>
+                <option value="normale">Normale</option>
+                <option value="rapide">Rapide</option>
+              </select>
+            </label>
+            <label class="champ-libelle">Écran de veille de la borne
+              <span class="couleur-ligne"><input type="number" id="perso-veille" class="champ" min="0" max="600"> <span class="aide">secondes d'inactivité</span></span>
+              <span class="aide">0 = désactivé. Diffuse en plein écran les messages de la zone « Écran de veille ».</span>
+            </label>
+          </div>
+          <a class="btn btn-secondaire btn-s" href="/borne/?veille" target="_blank" rel="noopener">Prévisualiser l'écran de veille (version publiée)</a>
         </div>
 
         <!-- Messages -->
@@ -136,12 +165,15 @@
               <span class="z-entete"></span><span class="z-haut">haut</span>
               <span class="z-contenu"></span><span class="z-lateral">latéral</span>
               <span class="z-bas">bas</span>
+              <span class="z-veille">veille</span>
             </div>
             <ul>
               <li><strong>Bandeau haut</strong> : sous l'en-tête, les messages défilent un par un.</li>
               <li><strong>Panneau latéral</strong> : à droite, avec image (visuel publicitaire).</li>
               <li><strong>Bandeau bas</strong> : texte défilant en continu en bas de l'écran.</li>
               <li><strong>Ticket</strong> : message imprimé sur le ticket de la borne.</li>
+              <li><strong>Écran de veille</strong> : plein écran sur la borne inactive (images, GIF animés, vidéos).</li>
+              <li>Médias acceptés : PNG, JPEG, WebP, SVG, <strong>GIF animé</strong>, <strong>vidéo MP4 ou WebM</strong> (lue sans son, 50 Mo max).</li>
             </ul>
           </div>
           <div id="perso-messages" class="perso-messages"></div>

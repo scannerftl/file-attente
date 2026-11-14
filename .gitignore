@@ -2,6 +2,7 @@ node_modules/
 server/db/*.sqlite
 server/db/*.sqlite-*
 server/db/marque.json
+server/db/medias/
 *.log
 
 # Env secrets

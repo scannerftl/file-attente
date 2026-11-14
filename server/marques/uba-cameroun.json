@@ -2,34 +2,65 @@
   "nom": "UBA Cameroun",
   "slogan": "Bienvenue dans votre agence",
   "logo": "",
-  "couleurs": { "principale": "#D6001C", "secondaire": "#1D1D1B" },
+  "couleurs": {
+    "principale": "#D6001C",
+    "secondaire": "#1D1D1B"
+  },
   "rotationSec": 8,
+  "animation": {
+    "transition": "glissement",
+    "vitesseDefilement": "normale"
+  },
+  "veilleSec": 45,
   "messages": [
     {
       "id": "exemple-1",
       "titre": "Exemple — Ouvrez votre compte en agence",
       "texte": "Texte publicitaire à remplacer depuis l'administration (Personnalisation client).",
-      "image": "",
-      "zones": ["haut", "lateral"],
-      "ecrans": ["borne", "mural"],
+      "media": "",
+      "dureeSec": 0,
+      "zones": [
+        "haut",
+        "lateral",
+        "veille"
+      ],
+      "ecrans": [
+        "borne",
+        "mural"
+      ],
       "actif": true
     },
     {
       "id": "exemple-2",
       "titre": "Exemple — Banque en ligne",
       "texte": "Deuxième message d'exemple : produit, offre du moment ou information pratique.",
-      "image": "",
-      "zones": ["lateral", "bas"],
-      "ecrans": ["borne", "mural"],
+      "media": "",
+      "dureeSec": 0,
+      "zones": [
+        "lateral",
+        "bas",
+        "veille"
+      ],
+      "ecrans": [
+        "borne",
+        "mural"
+      ],
       "actif": true
     },
     {
       "id": "exemple-3",
       "titre": "Merci de votre confiance",
       "texte": "Message imprimé sur le ticket de la borne.",
-      "image": "",
-      "zones": ["ticket", "bas"],
-      "ecrans": ["borne", "mural"],
+      "media": "",
+      "dureeSec": 0,
+      "zones": [
+        "ticket",
+        "bas"
+      ],
+      "ecrans": [
+        "borne",
+        "mural"
+      ],
       "actif": true
     }
   ]

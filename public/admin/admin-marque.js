@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ['lateral', 'Panneau latéral'],
     ['bas', 'Bandeau bas'],
     ['ticket', 'Ticket'],
+    ['veille', 'Écran de veille'],
   ];
   const ECRANS = [['borne', 'Borne'], ['mural', 'Écran mural']];
   const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -42,38 +43,63 @@ document.addEventListener('DOMContentLoaded', () => {
     return data;
   }
 
+  const estVideo = (src) => /\.(mp4|webm)$/i.test(src || '');
+
   /**
-   * Lit une image choisie par l'utilisateur en data URL.
-   * Les images matricielles sont réduites (1600 px max) et compressées en WebP
-   * pour rester légères ; les SVG sont gardés tels quels.
+   * Réduit une image matricielle (sauf GIF animé et SVG, gardés tels quels)
+   * pour alléger l'envoi. Renvoie un Blob ou le fichier d'origine.
    */
-  function lireImage(fichier, tailleMax = 1600) {
-    return new Promise((resolve, reject) => {
-      const lecteur = new FileReader();
-      lecteur.onerror = () => reject(new Error('Lecture du fichier impossible'));
-      lecteur.onload = () => {
-        const url = lecteur.result;
-        if (fichier.type === 'image/svg+xml') {
-          if (url.length > 1.9e6) return reject(new Error('Image SVG trop lourde'));
-          return resolve(url);
-        }
-        const img = new Image();
-        img.onerror = () => reject(new Error('Image illisible'));
-        img.onload = () => {
-          const k = Math.min(1, tailleMax / Math.max(img.width, img.height));
-          const c = document.createElement('canvas');
-          c.width = Math.round(img.width * k);
-          c.height = Math.round(img.height * k);
-          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-          let sortie = c.toDataURL('image/webp', 0.85);
-          if (!sortie.startsWith('data:image/webp')) sortie = c.toDataURL('image/png');
-          if (sortie.length > 1.9e6) return reject(new Error('Image trop lourde, même après réduction'));
-          resolve(sortie);
-        };
-        img.src = url;
+  function reduireImage(fichier, tailleMax) {
+    if (!/^image\/(png|jpeg|webp)$/.test(fichier.type)) return Promise.resolve(fichier);
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(fichier);
+      const img = new Image();
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(fichier); };
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const k = Math.min(1, tailleMax / Math.max(img.width, img.height));
+        if (k === 1 && fichier.size < 800 * 1024) return resolve(fichier);
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k);
+        c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob((b) => resolve(b && b.size < fichier.size ? b : fichier), 'image/webp', 0.85);
       };
-      lecteur.readAsDataURL(fichier);
+      img.src = url;
     });
+  }
+
+  /**
+   * Envoie un média (image, GIF animé, vidéo) au serveur.
+   * @returns {Promise<string>} chemin /medias/… à enregistrer dans la configuration
+   */
+  async function televerser(fichier, tailleMax = 1920) {
+    if (fichier.size > 50 * 1024 * 1024) throw new Error('Fichier trop lourd (50 Mo maximum)');
+    statut(`Envoi de « ${fichier.name} »…`, 'attente');
+    const corps = await reduireImage(fichier, tailleMax);
+    const r = await fetch('/api/medias', {
+      method: 'POST',
+      headers: { 'Content-Type': corps.type || fichier.type },
+      body: corps,
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.erreur || `Erreur ${r.status}`);
+    return data.url;
+  }
+
+  /** Aperçu d'un média (vidéo muette en boucle, ou image). */
+  function apercuMedia(src) {
+    let el;
+    if (estVideo(src)) {
+      el = document.createElement('video');
+      el.muted = true; el.loop = true; el.autoplay = true; el.playsInline = true;
+      el.setAttribute('muted', '');
+    } else {
+      el = document.createElement('img');
+      el.alt = '';
+    }
+    el.src = src;
+    return el;
   }
 
   /* ---------- Identité & couleurs ---------- */
@@ -98,6 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
     $('perso-c1').value = $('perso-c1-hex').value = etat.couleurs.principale;
     $('perso-c2').value = $('perso-c2-hex').value = etat.couleurs.secondaire;
     $('perso-rotation').value = etat.rotationSec;
+    const anim = etat.animation || (etat.animation = { transition: 'fondu', vitesseDefilement: 'normale' });
+    $('perso-transition').value = anim.transition || 'fondu';
+    $('perso-vitesse').value = anim.vitesseDefilement || 'normale';
+    $('perso-veille').value = etat.veilleSec || 0;
     rendreLogo();
     rendreMessages();
     majApercu();
@@ -153,13 +183,16 @@ document.addEventListener('DOMContentLoaded', () => {
   $('perso-nom').addEventListener('input', (e) => { etat.nom = e.target.value; marquerModifie(); });
   $('perso-slogan').addEventListener('input', (e) => { etat.slogan = e.target.value; marquerModifie(); });
   $('perso-rotation').addEventListener('input', (e) => { etat.rotationSec = Number(e.target.value); marquerModifie(); });
+  $('perso-transition').addEventListener('change', (e) => { etat.animation.transition = e.target.value; marquerModifie(); });
+  $('perso-vitesse').addEventListener('change', (e) => { etat.animation.vitesseDefilement = e.target.value; marquerModifie(); });
+  $('perso-veille').addEventListener('input', (e) => { etat.veilleSec = Number(e.target.value); marquerModifie(); });
 
   $('perso-logo-fichier').addEventListener('change', async (e) => {
     const f = e.target.files[0];
     e.target.value = '';
     if (!f) return;
     try {
-      etat.logo = await lireImage(f, 600);
+      etat.logo = await televerser(f, 600);
       rendreLogo();
       marquerModifie();
     } catch (err) { statut(err.message, 'ko'); }
@@ -202,28 +235,41 @@ document.addEventListener('DOMContentLoaded', () => {
       // Visuel
       const visuel = document.createElement('div');
       visuel.className = 'msg-visuel';
-      if (m.image) {
-        const img = document.createElement('img'); img.src = m.image; img.alt = '';
-        visuel.appendChild(img);
+      if (m.image && !m.media) { m.media = m.image; }   // ancien format
+      delete m.image;
+      if (m.media) {
+        visuel.appendChild(apercuMedia(m.media));
+        if (estVideo(m.media)) {
+          const tag = document.createElement('em'); tag.className = 'tag-media'; tag.textContent = 'Vidéo';
+          visuel.appendChild(tag);
+        } else if (/\.gif$|^data:image\/gif/.test(m.media)) {
+          const tag = document.createElement('em'); tag.className = 'tag-media'; tag.textContent = 'GIF animé';
+          visuel.appendChild(tag);
+        }
       } else {
-        visuel.innerHTML = '<span>Sans image</span>';
+        visuel.innerHTML = '<span>Sans visuel</span>';
       }
       const choisir = document.createElement('label');
       choisir.className = 'btn btn-secondaire btn-s';
-      choisir.textContent = m.image ? 'Changer' : 'Image';
+      choisir.textContent = m.media ? 'Changer' : 'Image / vidéo';
       const fichier = document.createElement('input');
-      fichier.type = 'file'; fichier.accept = 'image/png,image/jpeg,image/webp,image/svg+xml'; fichier.hidden = true;
+      fichier.type = 'file';
+      fichier.accept = 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml,video/mp4,video/webm';
+      fichier.hidden = true;
       fichier.addEventListener('change', async () => {
         const f = fichier.files[0];
         if (!f) return;
-        try { m.image = await lireImage(f); rendreMessages(); marquerModifie(); } catch (err) { statut(err.message, 'ko'); }
+        try {
+          m.media = await televerser(f);
+          rendreMessages(); marquerModifie();
+        } catch (err) { statut(err.message, 'ko'); }
       });
       choisir.appendChild(fichier);
       visuel.appendChild(choisir);
-      if (m.image) {
+      if (m.media) {
         const retirer = document.createElement('button');
         retirer.type = 'button'; retirer.className = 'btn btn-secondaire btn-s'; retirer.textContent = 'Retirer';
-        retirer.addEventListener('click', () => { m.image = ''; rendreMessages(); marquerModifie(); });
+        retirer.addEventListener('click', () => { m.media = ''; rendreMessages(); marquerModifie(); });
         visuel.appendChild(retirer);
       }
 
@@ -242,6 +288,18 @@ document.addEventListener('DOMContentLoaded', () => {
         cases('Zones', ZONES, m.zones, (v) => { m.zones = v; marquerModifie(); }),
         cases('Écrans', ECRANS, m.ecrans, (v) => { m.ecrans = v; marquerModifie(); }),
       );
+      const duree = document.createElement('label');
+      duree.className = 'msg-duree';
+      const champDuree = document.createElement('input');
+      champDuree.type = 'number'; champDuree.min = 0; champDuree.max = 300; champDuree.className = 'champ';
+      champDuree.value = m.dureeSec || 0;
+      champDuree.addEventListener('input', () => { m.dureeSec = Number(champDuree.value) || 0; marquerModifie(); });
+      duree.append('Durée ', champDuree, ' s ');
+      const aideDuree = document.createElement('span');
+      aideDuree.className = 'aide';
+      aideDuree.textContent = '(0 = durée par défaut ; vidéo lue en entier)';
+      duree.appendChild(aideDuree);
+      options.appendChild(duree);
       contenu.append(titre, texte, options);
 
       // Actions
@@ -283,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   $('perso-ajouter').addEventListener('click', () => {
-    etat.messages.push({ id: '', titre: '', texte: '', image: '', zones: ['haut'], ecrans: ['borne', 'mural'], actif: true });
+    etat.messages.push({ id: '', titre: '', texte: '', media: '', dureeSec: 0, zones: ['haut'], ecrans: ['borne', 'mural'], actif: true });
     rendreMessages();
     marquerModifie();
     const cartes = $('perso-messages').querySelectorAll('.msg-carte');

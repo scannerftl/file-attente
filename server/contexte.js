@@ -32,6 +32,7 @@ const path = require('path');
  * @param {boolean} [opts.seed=true]
  * @param {object}  [opts.horloge]           horloge injectable
  * @param {string}  [opts.cheminMarque]      fichier de personnalisation client (JSON)
+ * @param {string}  [opts.dossierMedias]     dossier des médias publicitaires envoyés
  * @param {import('./db/connexion/Connexion')} [opts.connexion] connexion déjà ouverte (tests)
  * @returns {Promise<object>}
  */
@@ -59,7 +60,7 @@ async function creerContexte(opts = {}) {
     horloge,
   });
   const statistiques = new Statistiques({ ticketDAO, serviceDAO, cnx, horloge });
-  const marqueDAO = new MarqueDAO(opts.cheminMarque, path.join(__dirname, 'marques'));
+  const marqueDAO = new MarqueDAO(opts.cheminMarque, path.join(__dirname, 'marques'), opts.dossierMedias);
   const marque = new GestionMarque(marqueDAO, notification);
 
   return {

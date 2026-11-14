@@ -5,9 +5,11 @@
    - Remplit le nom, le slogan et le logo (éléments [data-marque=…]).
    - Affiche les messages publicitaires dans les zones [data-zone=…] :
        haut    : bandeau sous l'en-tête (rotation)
-       lateral : panneau visuel (rotation, avec image)
+       lateral : panneau visuel (rotation ; image, GIF animé ou vidéo)
        bas     : bandeau défilant en pied d'écran
        ticket  : message imprimé sur le ticket (borne)
+       veille  : écran de veille plein écran après inactivité (borne)
+     Les transitions (fondu, glissement, zoom) suivent <body data-transition>.
      L'écran courant est donné par <body data-ecran="borne|mural">.
    Chargé dans le <head> : les couleurs en cache sont appliquées avant
    l'affichage pour éviter un flash aux couleurs par défaut.
@@ -57,7 +59,6 @@
   /* ---------- Contenu ---------- */
   const $$ = (sel) => document.querySelectorAll(sel);
   let config = null;
-  const minuteurs = [];
 
   function initiales(nom) {
     const mots = nom.trim().split(/\s+/);
@@ -93,55 +94,134 @@
   function messages(m, zone) {
     const ecran = document.body.dataset.ecran;
     return (m.messages || []).filter((x) =>
-      x.actif && x.zones.includes(zone) && (zone === 'ticket' || x.ecrans.includes(ecran)));
+      x.actif && x.zones.includes(zone) &&
+      (zone === 'ticket' || zone === 'veille' || x.ecrans.includes(ecran)));
   }
 
-  function carteMessage(msg, avecImage) {
+  /** Le bandeau haut et le ticket n'affichent que du texte. */
+  const aTexte = (liste) => liste.filter((x) => x.titre || x.texte);
+  const estVideo = (src) => /\.(mp4|webm)$/i.test(src || '');
+  const mediaDe = (msg) => msg.media || msg.image || '';
+
+  /** Image (y compris GIF animé) ou vidéo muette en lecture automatique. */
+  function creerMedia(src) {
+    const cadre = document.createElement('div');
+    cadre.className = 'pub-media';
+    let el;
+    if (estVideo(src)) {
+      el = document.createElement('video');
+      el.muted = true;            // obligatoire pour la lecture automatique
+      el.playsInline = true;
+      el.preload = 'auto';
+      el.setAttribute('muted', '');
+      el.setAttribute('playsinline', '');
+    } else {
+      el = document.createElement('img');
+      el.alt = '';
+    }
+    el.src = src;
+    cadre.appendChild(el);
+    return cadre;
+  }
+
+  function carteMessage(msg, avecMedia) {
     const el = document.createElement('div');
     el.className = 'pub-item';
-    if (avecImage && msg.image) {
-      const img = document.createElement('img');
-      img.className = 'pub-image';
-      img.src = msg.image;
-      img.alt = '';
-      el.appendChild(img);
+    if (avecMedia && mediaDe(msg)) el.appendChild(creerMedia(mediaDe(msg)));
+    if (msg.titre || msg.texte) {
+      const txt = document.createElement('div');
+      txt.className = 'pub-texte';
+      if (msg.titre) { const t = document.createElement('strong'); t.textContent = msg.titre; txt.appendChild(t); }
+      if (msg.texte) { const p = document.createElement('span'); p.textContent = msg.texte; txt.appendChild(p); }
+      el.appendChild(txt);
+    } else {
+      el.classList.add('media-seul');
     }
-    const txt = document.createElement('div');
-    txt.className = 'pub-texte';
-    if (msg.titre) { const t = document.createElement('strong'); t.textContent = msg.titre; txt.appendChild(t); }
-    if (msg.texte) { const p = document.createElement('span'); p.textContent = msg.texte; txt.appendChild(p); }
-    el.appendChild(txt);
     return el;
   }
 
-  /** Zone en rotation (haut, lateral). */
-  function rendreRotation(zoneEl, liste, avecImage, sec) {
+  /**
+   * Zone en rotation (haut, latéral, veille) avec transition animée.
+   * Chaque message reste affiché sa durée propre, sinon la durée de rotation ;
+   * une vidéo sans durée propre est lue jusqu'au bout avant de passer à la suite.
+   * @returns {{ arreter: () => void }}
+   */
+  function rendreRotation(zoneEl, liste, avecMedia, m) {
     zoneEl.innerHTML = '';
     zoneEl.classList.toggle('cachee', liste.length === 0);
-    if (!liste.length) return;
-    const items = liste.map((msg) => carteMessage(msg, avecImage));
-    items.forEach((it, i) => { if (i) it.classList.add('pub-masque'); zoneEl.appendChild(it); });
+    if (!liste.length) return { arreter() {} };
+
+    const scene = document.createElement('div');
+    scene.className = 'pub-scene';
+    const items = liste.map((msg) => carteMessage(msg, avecMedia));
+    items.forEach((it) => scene.appendChild(it));
+    zoneEl.appendChild(scene);
+
+    let points = null;
     if (items.length > 1) {
-      const points = document.createElement('div');
+      points = document.createElement('div');
       points.className = 'pub-points';
       items.forEach(() => points.appendChild(document.createElement('i')));
-      points.firstChild.classList.add('actif');
       zoneEl.appendChild(points);
-      let i = 0;
-      minuteurs.push(setInterval(() => {
-        items[i].classList.add('pub-masque'); points.children[i].classList.remove('actif');
-        i = (i + 1) % items.length;
-        items[i].classList.remove('pub-masque'); points.children[i].classList.add('actif');
-      }, sec * 1000));
     }
+
+    let i = -1, minuteur = null, arrete = false;
+    const defaut = (m.rotationSec || 8) * 1000;
+
+    function suivant() { if (!arrete) montrer((i + 1) % items.length); }
+
+    function montrer(n) {
+      clearTimeout(minuteur);
+      const ancien = items[i];
+      if (ancien && n !== i) {
+        ancien.classList.remove('actif');
+        ancien.classList.add('sortant');
+        setTimeout(() => ancien.classList.remove('sortant'), 900);
+        const v = ancien.querySelector('video');
+        if (v) { v.pause(); v.onended = null; }
+      }
+      i = n;
+      const item = items[i], msg = liste[i];
+      const duree = msg.dureeSec ? msg.dureeSec * 1000 : defaut;
+      item.style.setProperty('--duree', (duree / 1000) + 's');
+      // Redémarre les animations CSS (effet de zoom) à chaque apparition.
+      item.classList.remove('actif'); void item.offsetWidth; item.classList.add('actif');
+      if (points) [...points.children].forEach((p, k) => p.classList.toggle('actif', k === i));
+
+      const v = item.querySelector('video');
+      if (v) {
+        v.currentTime = 0;
+        v.loop = items.length === 1;
+        v.play().catch(() => {});
+        if (items.length > 1) {
+          if (msg.dureeSec) minuteur = setTimeout(suivant, duree);
+          else {
+            v.onended = suivant;
+            v.onerror = () => { minuteur = setTimeout(suivant, defaut); };
+          }
+        }
+      } else if (items.length > 1) {
+        minuteur = setTimeout(suivant, duree);
+      }
+    }
+
+    montrer(0);
+    return {
+      arreter() {
+        arrete = true;
+        clearTimeout(minuteur);
+        zoneEl.querySelectorAll('video').forEach((v) => v.pause());
+      },
+    };
   }
 
   /** Bandeau défilant (bas). */
-  function rendreDefilant(zoneEl, liste) {
+  function rendreDefilant(zoneEl, liste, vitesse) {
     zoneEl.innerHTML = '';
-    zoneEl.classList.toggle('cachee', liste.length === 0);
-    document.body.classList.toggle('avec-defilant', liste.length > 0);
-    if (!liste.length) return;
+    const avecTexte = liste.filter((msg) => msg.titre || msg.texte);
+    zoneEl.classList.toggle('cachee', avecTexte.length === 0);
+    document.body.classList.toggle('avec-defilant', avecTexte.length > 0);
+    if (!avecTexte.length) return;
     const piste = document.createElement('div');
     piste.className = 'defilant-piste';
     // Deux copies du contenu pour un défilement continu sans saut.
@@ -149,7 +229,7 @@
       const groupe = document.createElement('div');
       groupe.className = 'defilant-groupe';
       if (copie) groupe.setAttribute('aria-hidden', 'true');
-      for (const msg of liste) {
+      for (const msg of avecTexte) {
         const s = document.createElement('span');
         s.className = 'defilant-item';
         if (msg.titre) { const b = document.createElement('strong'); b.textContent = msg.titre; s.appendChild(b); }
@@ -160,20 +240,90 @@
       piste.appendChild(groupe);
     }
     zoneEl.appendChild(piste);
-    const longueur = liste.reduce((n, m) => n + m.titre.length + m.texte.length, 0);
-    piste.style.animationDuration = Math.max(20, longueur * 0.28) + 's';
+    // Secondes par caractère : plus la valeur est grande, plus le texte défile lentement.
+    const parCaractere = { lente: 0.4, normale: 0.28, rapide: 0.17 }[vitesse] || 0.28;
+    const longueur = avecTexte.reduce((n, m) => n + m.titre.length + m.texte.length, 0);
+    piste.style.animationDuration = Math.max(15, longueur * parCaractere) + 's';
   }
 
+  /* ---------- Écran de veille publicitaire (borne) ---------- */
+  let veille = { arreter() {} };
+
+  function initVeille(m) {
+    veille.arreter();
+    const el = document.querySelector('[data-zone="veille"]');
+    if (!el) return;
+    const liste = messages(m, 'veille');
+    const apercu = new URLSearchParams(location.search).has('veille');
+    if (!liste.length || (!m.veilleSec && !apercu)) {
+      el.classList.remove('visible');
+      el.innerHTML = '';
+      return;
+    }
+
+    let minuteur = null, rotation = null, visible = false;
+
+    function afficher() {
+      if (visible) return;
+      visible = true;
+      el.innerHTML = '';
+      const entete = document.createElement('div');
+      entete.className = 'veille-entete';
+      entete.innerHTML = '<span class="marque-logo" data-marque="logo"></span><span data-marque="nom"></span>';
+      const scene = document.createElement('div');
+      scene.className = 'veille-scene';
+      const appel = document.createElement('div');
+      appel.className = 'veille-appel';
+      appel.textContent = "Touchez l'écran pour prendre un ticket";
+      el.append(entete, scene, appel);
+      rendreIdentite(m);
+      rotation = rendreRotation(scene, liste, true, m);
+      el.classList.add('visible');
+    }
+    function masquer() {
+      if (!visible) return;
+      visible = false;
+      el.classList.remove('visible');
+      if (rotation) rotation.arreter();
+    }
+    function activite(e) {
+      if (visible) {
+        // Le toucher qui réveille la borne ne déclenche pas d'action dessous.
+        e.preventDefault();
+        e.stopPropagation();
+        masquer();
+      }
+      clearTimeout(minuteur);
+      if (m.veilleSec) minuteur = setTimeout(afficher, m.veilleSec * 1000);
+    }
+    const evenements = ['pointerdown', 'keydown'];
+    evenements.forEach((t) => document.addEventListener(t, activite, true));
+    if (m.veilleSec) minuteur = setTimeout(afficher, m.veilleSec * 1000);
+    if (apercu) afficher();
+
+    veille = {
+      arreter() {
+        clearTimeout(minuteur);
+        evenements.forEach((t) => document.removeEventListener(t, activite, true));
+        masquer();
+      },
+    };
+  }
+
+  let rotations = [];
+
   function rendreZones(m) {
-    minuteurs.splice(0).forEach(clearInterval);
-    const sec = m.rotationSec || 8;
-    $$('[data-zone="haut"]').forEach((el) => rendreRotation(el, messages(m, 'haut'), false, sec));
+    rotations.splice(0).forEach((r) => r.arreter());
+    const anim = m.animation || {};
+    document.body.dataset.transition = anim.transition || 'fondu';
+    $$('[data-zone="haut"]').forEach((el) => rotations.push(rendreRotation(el, aTexte(messages(m, 'haut')), false, m)));
     $$('[data-zone="lateral"]').forEach((el) => {
       const liste = messages(m, 'lateral');
-      rendreRotation(el, liste, true, sec);
+      rotations.push(rendreRotation(el, liste, true, m));
       document.body.classList.toggle('avec-lateral', liste.length > 0);
     });
-    $$('[data-zone="bas"]').forEach((el) => rendreDefilant(el, messages(m, 'bas')));
+    $$('[data-zone="bas"]').forEach((el) => rendreDefilant(el, messages(m, 'bas'), anim.vitesseDefilement));
+    initVeille(m);
   }
 
   function rendre(m) {
@@ -199,7 +349,7 @@
     get config() { return config; },
     /** Message à imprimer sur le ticket (rotation à chaque ticket). */
     messageTicket() {
-      const liste = config ? messages(config, 'ticket') : [];
+      const liste = config ? aTexte(messages(config, 'ticket')) : [];
       if (!liste.length) return null;
       Marque._iTicket = ((Marque._iTicket ?? -1) + 1) % liste.length;
       return liste[Marque._iTicket];

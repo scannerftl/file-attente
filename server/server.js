@@ -42,6 +42,7 @@ async function demarrer() {
     mysql: config.MYSQL,
     seed: true,
     cheminMarque: config.CHEMIN_MARQUE,
+    dossierMedias: config.DOSSIER_MEDIAS,
   });
 
   // 2) Application Express : API + fichiers des IHM.
@@ -49,6 +50,17 @@ async function demarrer() {
   // Limite relevée : la personnalisation client peut contenir des images (logo, visuels).
   app.use(express.json({ limit: '12mb' }));
   app.use('/api', creerRoutes(ctx));
+
+  // Médias publicitaires envoyés depuis l'administration. Un SVG ouvert
+  // directement ne peut exécuter aucun script (CSP « sandbox »).
+  app.use('/medias', express.static(config.DOSSIER_MEDIAS, {
+    maxAge: '7d',
+    immutable: true,
+    setHeaders: (res) => {
+      res.set('X-Content-Type-Options', 'nosniff');
+      res.set('Content-Security-Policy', "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox");
+    },
+  }));
 
   // Couche présentation (les 3 IHM) servie en statique.
   const racinePublic = path.join(__dirname, '..', 'public');

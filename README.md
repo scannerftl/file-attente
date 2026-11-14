@@ -101,7 +101,7 @@ ouverts se mettent à jour immédiatement (WebSocket), sans rechargement.
 | Réglage | Effet |
 | --- | --- |
 | Nom, slogan | En-tête de tous les écrans et ticket imprimé |
-| Logo | Image PNG, JPEG, WebP ou SVG (réduite automatiquement). Sans logo : initiales du client |
+| Logo | Image PNG, JPEG, WebP, GIF ou SVG (réduite automatiquement). Sans logo : initiales du client |
 | Couleur principale | En-têtes, boutons, bandeau haut, fond teinté de l'écran mural |
 | Couleur secondaire | Bandeau défilant, accents ; appel en cours sur le mural si assez visible |
 | Rotation | Durée d'affichage de chaque message (3 à 120 s) |
@@ -118,14 +118,32 @@ client selon son contraste avec le fond.
 | `lateral` | Panneau à droite des services (avec image) | Sous les derniers appels (avec image) |
 | `bas` | Bandeau défilant en pied d'écran | Bandeau défilant (remplace la consigne) |
 | `ticket` | Message imprimé sur le ticket | — |
+| `veille` | Écran de veille plein écran après inactivité | — |
 
-Une zone sans message actif est masquée. Des **modèles** sont fournis dans
+Une zone sans message actif est masquée.
+
+**Animations publicitaires** — chaque message peut porter un visuel : image (PNG, JPEG,
+WebP, SVG), **GIF animé** (conservé tel quel) ou **vidéo MP4 / WebM** (lue sans son, en
+lecture automatique ; 50 Mo maximum). Les fichiers sont envoyés depuis l'administration
+et stockés dans `server/db/medias/` (variable `DOSSIER_MEDIAS`) ; ceux qui ne servent
+plus sont supprimés à la publication suivante.
+
+| Réglage | Valeurs |
+| --- | --- |
+| Transition entre messages | Fondu enchaîné, glissement, zoom (avec zoom lent sur les images), aucune |
+| Durée d'affichage | Par défaut pour tous les messages, ou propre à un message ; une vidéo est lue jusqu'au bout |
+| Vitesse du bandeau défilant | Lente, normale, rapide |
+| Écran de veille (borne) | Après N secondes d'inactivité (0 = désactivé) ; le toucher qui réveille la borne ne prend pas de ticket. Aperçu : `/borne/?veille` |
+
+Les animations sont désactivées si le système demande de réduire les mouvements
+(`prefers-reduced-motion`). Des **modèles** sont fournis dans
 [`server/marques/`](server/marques/) (`defaut.json`, `uba-cameroun.json` — exemple
 avec des textes à remplacer) et se chargent depuis l'administration. La configuration
 publiée est enregistrée dans `server/db/marque.json` (variable `CHEMIN_MARQUE`), hors
 du dépôt git ; « Revenir au modèle par défaut » la supprime.
 
-API : `GET /api/marque`, `PUT /api/marque`, `DELETE /api/marque`,
+API : `GET /api/marque`, `PUT /api/marque`, `DELETE /api/marque`, `POST /api/medias`
+(corps brut, type MIME en `Content-Type`),
 `GET /api/marque/modeles`, `GET /api/marque/modeles/:id`.
 
 > ⚠️ L'administration n'est pas protégée par mot de passe : limitez son accès au réseau
@@ -202,6 +220,7 @@ Copier `.env.example` en `.env` (ou exporter les variables). Principales options
 | --- | --- | --- |
 | `PORT` | `3000` | Port HTTP |
 | `CHEMIN_MARQUE` | `server/db/marque.json` | Fichier de la personnalisation client publiée |
+| `DOSSIER_MEDIAS` | `server/db/medias/` | Images, GIF et vidéos publicitaires envoyés |
 | `DB_DRIVER` | `sqlite` | `sqlite` (dev) ou `mysql` (cible) |
 | `DELAI_ABANDON_MIN` | `5` | Délai (min) avant qu'un ticket appelé non clôturé soit abandonné |
 | `MYSQL_*` | — | Hôte, port, user, mot de passe, base (si `DB_DRIVER=mysql`) |
@@ -248,7 +267,7 @@ npm test
 ```
 
 `test/recette.test.js` implémente les tests **T1 → T8** (sur SQLite en mémoire) ;
-`test/marque.test.js` couvre la personnalisation client (validation, modèles).
+`test/marque.test.js` couvre la personnalisation client (validation, modèles, médias, animations).
 Pour vérifier l'adaptateur MySQL, voir `npm run test:mysql` ci-dessus.
 
 ## 🖥️ Déploiement Windows

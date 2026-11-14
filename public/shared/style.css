@@ -328,11 +328,40 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 /* =====================================================================
    Zones publicitaires du client (remplies par /shared/marque.js)
    ===================================================================== */
-.pub-item { display: flex; align-items: center; gap: 16px; animation: pub-entree 0.5s ease; }
-.pub-masque { display: none !important; }
+/* Scène de rotation : tous les messages occupent la même cellule et
+   s'enchaînent avec la transition choisie (<body data-transition>). */
+.pub-scene { display: grid; flex: 1; min-height: 0; }
+.pub-item {
+  grid-area: 1 / 1;
+  display: flex; align-items: center; gap: 16px;
+  min-width: 0; min-height: 0;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.7s;
+}
+.pub-item.actif { opacity: 1; visibility: visible; transform: none; transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
 .pub-texte { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pub-texte strong { font-weight: 700; }
-@keyframes pub-entree { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Glissement : le message entre par la droite, l'ancien sort par la gauche */
+[data-transition="glissement"] .pub-item { transform: translateX(48px); }
+[data-transition="glissement"] .pub-item.sortant { transform: translateX(-48px); }
+[data-transition="glissement"] .pub-item.actif { transform: none; }
+/* Zoom : apparition agrandie + lent zoom sur les images (effet « Ken Burns ») */
+[data-transition="zoom"] .pub-item { transform: scale(0.92); }
+[data-transition="zoom"] .pub-item.sortant { transform: scale(1.06); }
+[data-transition="zoom"] .pub-item.actif { transform: none; }
+[data-transition="zoom"] .pub-item.actif .pub-media img { animation: ken-burns var(--duree, 8s) ease-out both; }
+@keyframes ken-burns { from { transform: scale(1); } to { transform: scale(1.12); } }
+/* Aucune animation */
+[data-transition="aucune"] .pub-item, [data-transition="aucune"] .pub-item.actif { transition: none; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .pub-item, .pub-item.actif { transition: none !important; transform: none !important; }
+  .pub-media img { animation: none !important; }
+}
+
+/* Visuel : image, GIF animé ou vidéo */
+.pub-media { overflow: hidden; border-radius: var(--rayon); background: #000; }
+.pub-media img, .pub-media video { display: block; width: 100%; height: 100%; object-fit: cover; }
 
 .pub-points { display: flex; gap: 6px; }
 .pub-points i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.3; }
@@ -359,7 +388,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   overflow: hidden;
 }
 .pub-lateral .pub-item { flex-direction: column; align-items: stretch; }
-.pub-lateral .pub-image { width: 100%; max-height: 260px; object-fit: cover; border-radius: var(--rayon); }
+.pub-lateral .pub-media { aspect-ratio: 16 / 9; max-height: 280px; }
+.pub-lateral .media-seul .pub-media { max-height: none; }
 .pub-lateral .pub-texte strong { font-size: 20px; color: var(--texte); }
 .pub-lateral .pub-texte span { color: var(--texte-2); }
 .pub-lateral .pub-points { color: var(--marque); justify-content: center; }
@@ -377,3 +407,45 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .defilant-item::after { content: '•'; margin: 0 28px; opacity: 0.5; }
 @keyframes defiler { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .defilant-piste { animation: none; } }
+
+/* Écran de veille publicitaire (borne inactive) */
+.veille {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column;
+  background: color-mix(in srgb, var(--marque) 22%, #05070B);
+  color: #FFF;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.6s ease, visibility 0s linear 0.6s;
+  cursor: pointer;
+}
+.veille.visible { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.6s ease; }
+.veille-entete {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 28px;
+  background: var(--marque); color: var(--sur-marque);
+  font-size: 20px; font-weight: 800;
+}
+.veille-entete .marque-logo { width: 44px; height: 44px; background: #FFF; padding: 3px; }
+.veille-entete .logo-initiales { background: var(--sur-marque); color: var(--marque); font-size: 13px; }
+.veille-scene { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 4vh 5vw 2vh; min-height: 0; }
+.veille-scene .pub-scene { flex: 1; }
+.veille-scene .pub-item { flex-direction: column; align-items: stretch; justify-content: center; gap: 3vh; }
+.veille-scene .pub-media { flex: 1; min-height: 0; border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45); }
+.veille-scene .pub-media img, .veille-scene .pub-media video { object-fit: contain; background: #000; }
+.veille-scene .pub-item:not(:has(.pub-media)) { align-items: center; text-align: center; }
+.veille-scene .pub-texte { text-align: center; align-items: center; }
+.veille-scene .pub-texte strong { font-size: clamp(28px, 4.2vw, 64px); letter-spacing: -0.02em; line-height: 1.1; }
+.veille-scene .pub-texte span { font-size: clamp(18px, 2vw, 30px); opacity: 0.85; max-width: 1100px; }
+.veille-scene .pub-points { justify-content: center; color: #FFF; }
+.veille-scene .pub-points i { width: 10px; height: 10px; }
+.veille-appel {
+  margin: 0 auto 4vh;
+  padding: 16px 32px;
+  border-radius: 999px;
+  background: #FFF; color: var(--marque);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font-size: clamp(18px, 2vw, 26px); font-weight: 700;
+  animation: pulsation 2.4s ease-in-out infinite;
+}
+@keyframes pulsation { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { .veille-appel { animation: none; } }
