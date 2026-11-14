@@ -137,7 +137,7 @@ $('#btn-cloturer').onclick = cloturer;
 // avec repli en polling 2 s si le WebSocket tombe.
 const badge = $('#badge');
 connecterTempsReel(
-  () => rafraichir(),
+  (ev) => { if (ev.type === 'marque') Marque.charger(); else rafraichir(); },
   (etat) => {
     badge.className = 'badge-connexion ' + (etat === 'ok' ? 'ok' : 'ko');
     badge.textContent = etat === 'ok' ? 'Temps réel' : 'Reconnexion…';

@@ -43,6 +43,15 @@ function afficherTicket(ticket) {
   $('#ticket-date').textContent =
     d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
     ' · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  // Message publicitaire imprimé sur le ticket (zone « ticket »).
+  const pub = window.Marque && Marque.messageTicket();
+  const zonePub = $('#ticket-pub');
+  zonePub.innerHTML = '';
+  zonePub.classList.toggle('cachee', !pub);
+  if (pub) {
+    if (pub.titre) { const t = document.createElement('strong'); t.textContent = pub.titre; zonePub.appendChild(t); }
+    if (pub.texte) zonePub.appendChild(document.createTextNode(pub.texte));
+  }
   $('#vue-accueil').classList.add('cachee');
   $('#vue-ticket').classList.remove('cachee');
 
@@ -63,7 +72,8 @@ function afficherTicket(ticket) {
 // Badge de connexion temps réel (non indispensable pour la borne).
 const badge = $('#badge');
 connecterTempsReel(
-  () => {},
+  // Personnalisation modifiée en administration → mise à jour immédiate.
+  (ev) => { if (ev.type === 'marque') { Marque.charger(); chargerServices().catch(() => {}); } },
   (etat) => {
     badge.className = 'badge-connexion ' + (etat === 'ok' ? 'ok' : 'ko');
     badge.textContent = etat === 'ok' ? 'En ligne' : 'Hors ligne';

@@ -13,7 +13,7 @@ const { NB_APPELS_RECENTS, DELAI_ABANDON_MIN } = require('../config');
  * @param {object} ctx  contexte assemblé (voir contexte.js)
  */
 function creerRoutes(ctx) {
-  const { gestionnaire, statistiques, dao } = ctx;
+  const { gestionnaire, statistiques, dao, marque } = ctx;
   const r = express.Router();
 
   // Enveloppe async : erreurs métier → 400, autres → 500.
@@ -212,6 +212,48 @@ function creerRoutes(ctx) {
     const { date } = req.query;
     res.json(await statistiques.calculerRapport(date));
   }));
+
+  // --- Personnalisation client (marque, couleurs, messages publicitaires) ---
+  r.get('/marque', geree(async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.json(marque.lire());
+  }));
+
+  r.put('/marque', geree(async (req, res) => {
+    res.json(marque.enregistrer(req.body));
+  }));
+
+  r.delete('/marque', geree(async (req, res) => {
+    res.json(marque.reinitialiser());
+  }));
+
+  // Envoi d'un média (corps brut, type MIME dans Content-Type) → { url, type }.
+  r.post(
+    '/medias',
+    express.raw({ type: ['image/*', 'video/*'], limit: '50mb' }),
+    geree(async (req, res) => {
+      res.status(201).json(marque.ajouterMedia(req.body, req.get('Content-Type')));
+    })
+  );
+
+  r.get('/marque/modeles', geree(async (req, res) => {
+    res.json(marque.modeles());
+  }));
+
+  r.get('/marque/modeles/:id', geree(async (req, res) => {
+    res.json(marque.modele(req.params.id));
+  }));
+
+  // Corps refusé par le parseur (fichier trop lourd, JSON invalide) → message clair.
+  r.use((err, req, res, next) => {
+    if (err && err.type === 'entity.too.large') {
+      return res.status(413).json({ erreur: 'Fichier trop lourd (50 Mo maximum)' });
+    }
+    if (err && err.type === 'entity.parse.failed') {
+      return res.status(400).json({ erreur: 'Requête invalide' });
+    }
+    next(err);
+  });
 
   return r;
 }

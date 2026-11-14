@@ -8,12 +8,13 @@
   <link rel="stylesheet" href="/shared/style.css" />
   <link rel="stylesheet" href="/admin/admin.css" />
   <script src="/shared/theme.js"></script>
+  <script src="/shared/marque.js"></script>
 </head>
 <body class="admin">
   <header class="barre">
     <a class="marque" href="/">
-      <img class="marque-logo" src="/shared/logo.svg" alt="" />
-      <span class="marque-texte"><span class="marque-nom">Agence</span><span class="marque-sous">Gestion de file d'attente</span></span>
+      <span class="marque-logo" data-marque="logo"><img src="/shared/logo.svg" alt="" /></span>
+      <span class="marque-texte"><span class="marque-nom" data-marque="nom">Agence</span><span class="marque-sous">Gestion de file d'attente</span></span>
     </a>
     <span class="barre-sep"></span>
     <span class="barre-titre">Administration</span>
@@ -65,6 +66,125 @@
             <tr><td colspan="4" class="empty-state">Chargement des statistiques…</td></tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- Personnalisation client : identité, couleurs, messages publicitaires -->
+    <section class="carte bloc" id="perso">
+      <div class="bloc-entete bloc-entete-actions">
+        <div>
+          <h2>Personnalisation client</h2>
+          <p class="bloc-desc">Nom, logo, couleurs et messages publicitaires affichés sur la borne et l'écran mural.</p>
+        </div>
+        <div class="perso-modele">
+          <select id="perso-modele" class="champ" aria-label="Modèle"></select>
+          <button id="perso-charger-modele" class="btn btn-secondaire btn-s" type="button">Charger le modèle</button>
+        </div>
+      </div>
+
+      <div class="perso-corps">
+        <!-- Identité -->
+        <div class="perso-bloc">
+          <h3>Identité</h3>
+          <div class="perso-identite">
+            <div class="perso-logo">
+              <div id="perso-logo-apercu" class="logo-apercu"></div>
+              <label class="btn btn-secondaire btn-s">Choisir un logo<input type="file" id="perso-logo-fichier" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden></label>
+              <button id="perso-logo-retirer" class="btn btn-secondaire btn-s" type="button">Retirer</button>
+            </div>
+            <div class="perso-champs">
+              <label class="champ-libelle">Nom du client <input id="perso-nom" class="champ" maxlength="60" placeholder="ex. UBA Cameroun"></label>
+              <label class="champ-libelle">Slogan <input id="perso-slogan" class="champ" maxlength="120" placeholder="Affiché sous le nom"></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Couleurs -->
+        <div class="perso-bloc">
+          <h3>Couleurs</h3>
+          <div class="perso-couleurs">
+            <label class="champ-libelle">Couleur principale
+              <span class="couleur-ligne"><input type="color" id="perso-c1"><input id="perso-c1-hex" class="champ hex" maxlength="7"></span>
+              <span class="aide">En-têtes, boutons, bandeau haut.</span>
+            </label>
+            <label class="champ-libelle">Couleur secondaire
+              <span class="couleur-ligne"><input type="color" id="perso-c2"><input id="perso-c2-hex" class="champ hex" maxlength="7"></span>
+              <span class="aide">Bandeau défilant, accents.</span>
+            </label>
+          </div>
+          <div class="apercu" id="perso-apercu">
+            <div class="apercu-barre"><span class="apercu-logo"></span><span class="apercu-nom"></span></div>
+            <div class="apercu-corps">
+              <span class="apercu-num">042</span>
+              <span class="apercu-guichet">Guichet 2</span>
+            </div>
+            <div class="apercu-bas">Bandeau défilant — message publicitaire</div>
+          </div>
+        </div>
+
+        <!-- Animations -->
+        <div class="perso-bloc">
+          <h3>Animations</h3>
+          <div class="perso-couleurs">
+            <label class="champ-libelle">Transition entre les messages
+              <select id="perso-transition" class="champ">
+                <option value="fondu">Fondu enchaîné</option>
+                <option value="glissement">Glissement</option>
+                <option value="zoom">Zoom (avec zoom lent sur les images)</option>
+                <option value="aucune">Aucune</option>
+              </select>
+              <span class="aide">Bandeau haut, panneau latéral et écran de veille.</span>
+            </label>
+            <label class="champ-libelle">Durée d'affichage par défaut
+              <span class="couleur-ligne"><input type="number" id="perso-rotation" class="champ" min="3" max="120"> <span class="aide">secondes</span></span>
+              <span class="aide">Une vidéo est lue jusqu'au bout, sauf durée fixée sur le message.</span>
+            </label>
+            <label class="champ-libelle">Vitesse du bandeau défilant
+              <select id="perso-vitesse" class="champ">
+                <option value="lente">Lente</option>
+                <option value="normale">Normale</option>
+                <option value="rapide">Rapide</option>
+              </select>
+            </label>
+            <label class="champ-libelle">Écran de veille de la borne
+              <span class="couleur-ligne"><input type="number" id="perso-veille" class="champ" min="0" max="600"> <span class="aide">secondes d'inactivité</span></span>
+              <span class="aide">0 = désactivé. Diffuse en plein écran les messages de la zone « Écran de veille ».</span>
+            </label>
+          </div>
+          <a class="btn btn-secondaire btn-s" href="/borne/?veille" target="_blank" rel="noopener">Prévisualiser l'écran de veille (version publiée)</a>
+        </div>
+
+        <!-- Messages -->
+        <div class="perso-bloc">
+          <div class="perso-bloc-entete">
+            <h3>Messages publicitaires</h3>
+            <button id="perso-ajouter" class="btn btn-secondaire btn-s" type="button"><svg class="ico ico-s"><use href="/shared/icones.svg#i-plus"/></svg> Ajouter un message</button>
+          </div>
+          <div class="zones-legende">
+            <div class="schema" aria-hidden="true">
+              <span class="z-entete"></span><span class="z-haut">haut</span>
+              <span class="z-contenu"></span><span class="z-lateral">latéral</span>
+              <span class="z-bas">bas</span>
+              <span class="z-veille">veille</span>
+            </div>
+            <ul>
+              <li><strong>Bandeau haut</strong> : sous l'en-tête, les messages défilent un par un.</li>
+              <li><strong>Panneau latéral</strong> : à droite, avec image (visuel publicitaire).</li>
+              <li><strong>Bandeau bas</strong> : texte défilant en continu en bas de l'écran.</li>
+              <li><strong>Ticket</strong> : message imprimé sur le ticket de la borne.</li>
+              <li><strong>Écran de veille</strong> : plein écran sur la borne inactive (images, GIF animés, vidéos).</li>
+              <li>Médias acceptés : PNG, JPEG, WebP, SVG, <strong>GIF animé</strong>, <strong>vidéo MP4 ou WebM</strong> (lue sans son, 50 Mo max).</li>
+            </ul>
+          </div>
+          <div id="perso-messages" class="perso-messages"></div>
+        </div>
+      </div>
+
+      <div class="perso-pied">
+        <p id="perso-statut" class="perso-statut" role="status"></p>
+        <button id="perso-reinit" class="btn btn-secondaire" type="button">Revenir au modèle par défaut</button>
+        <button id="perso-annuler" class="btn btn-secondaire" type="button">Annuler les modifications</button>
+        <button id="perso-enregistrer" class="btn btn-primaire" type="button">Enregistrer et publier</button>
       </div>
     </section>
 
@@ -130,5 +250,6 @@
 
   <script src="/shared/api.js"></script>
   <script src="/admin/admin.js"></script>
+  <script src="/admin/admin-marque.js"></script>
 </body>
 </html>

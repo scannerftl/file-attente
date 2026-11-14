@@ -1,16 +1,23 @@
 /* =====================================================================
    Charte graphique — socle commun à toutes les interfaces.
-   Couleur de marque : bleu marine (#14285A), accent or (#D4A437).
+   Couleurs du client : --marque (principale) et --marque-2 (secondaire),
+   bleu marine et or par défaut, remplacées au chargement par
+   /shared/marque.js selon la personnalisation enregistrée en administration.
+   Toutes les teintes dérivées (survol, fonds doux, thème sombre) en découlent.
    Thème clair par défaut, thème sombre automatique (réglage système)
    ou forcé via <html data-theme="dark|light">.
    ===================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Marque */
-  --marine: #14285A;
-  --marine-900: #0C1A3D;
-  --or: #D4A437;
+  /* Marque (surchargée par marque.js) */
+  --marque: #14285A;
+  --marque-2: #D4A437;
+  --sur-marque: #FFFFFF;
+  --sur-marque-2: #111418;
+  --mural-fond: #0A1530;
+  --appel: #D4A437;
+  --sur-appel: #111418;
 
   /* Thème clair */
   --fond: #F4F6FA;
@@ -22,12 +29,12 @@
   --texte-2: #55637D;
   --texte-3: #8592A8;
 
-  --primaire: #14285A;
-  --primaire-survol: #1D3878;
-  --primaire-texte: #FFFFFF;
-  --primaire-doux: #E8EDF7;
-  --accent: #B8862A;          /* or assombri : lisible sur fond clair */
-  --accent-doux: #FBF3E2;
+  --primaire: var(--marque);
+  --primaire-survol: color-mix(in srgb, var(--marque) 85%, #000);
+  --primaire-texte: var(--sur-marque);
+  --primaire-doux: color-mix(in srgb, var(--marque) 10%, #FFF);
+  --accent: color-mix(in srgb, var(--marque-2) 80%, #000);
+  --accent-doux: color-mix(in srgb, var(--marque-2) 13%, #FFF);
 
   --succes: #1E7F55;
   --succes-doux: #E5F4EC;
@@ -60,12 +67,12 @@
     --texte: #E7ECF5;
     --texte-2: #A3B0C6;
     --texte-3: #75839B;
-    --primaire: #4C74D9;
-    --primaire-survol: #5E84E3;
+    --primaire: color-mix(in srgb, var(--marque) 72%, #FFF);
+    --primaire-survol: color-mix(in srgb, var(--marque) 62%, #FFF);
     --primaire-texte: #FFFFFF;
-    --primaire-doux: #1A2A4D;
-    --accent: #E2B655;
-    --accent-doux: #2E2614;
+    --primaire-doux: color-mix(in srgb, var(--marque) 28%, #121B2E);
+    --accent: color-mix(in srgb, var(--marque-2) 75%, #FFF);
+    --accent-doux: color-mix(in srgb, var(--marque-2) 18%, #121B2E);
     --succes: #4CC38A;
     --succes-doux: #12301F;
     --alerte: #E9A84A;
@@ -87,12 +94,12 @@
   --texte: #E7ECF5;
   --texte-2: #A3B0C6;
   --texte-3: #75839B;
-  --primaire: #4C74D9;
-  --primaire-survol: #5E84E3;
+  --primaire: color-mix(in srgb, var(--marque) 72%, #FFF);
+  --primaire-survol: color-mix(in srgb, var(--marque) 62%, #FFF);
   --primaire-texte: #FFFFFF;
-  --primaire-doux: #1A2A4D;
-  --accent: #E2B655;
-  --accent-doux: #2E2614;
+  --primaire-doux: color-mix(in srgb, var(--marque) 28%, #121B2E);
+  --accent: color-mix(in srgb, var(--marque-2) 75%, #FFF);
+  --accent-doux: color-mix(in srgb, var(--marque-2) 18%, #121B2E);
   --succes: #4CC38A;
   --succes-doux: #12301F;
   --alerte: #E9A84A;
@@ -169,7 +176,17 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   color: var(--texte);
   text-decoration: none;
 }
-.marque-logo { width: 34px; height: 34px; flex: none; border-radius: 8px; box-shadow: 0 0 0 1px var(--bordure); }
+.marque-logo {
+  width: 34px; height: 34px; flex: none;
+  display: inline-grid; place-items: center;
+  border-radius: 8px; overflow: hidden;
+}
+.marque-logo img { width: 100%; height: 100%; object-fit: contain; }
+/* Pas de logo fourni : initiales du client sur sa couleur */
+.logo-initiales {
+  background: var(--marque); color: var(--sur-marque);
+  font-weight: 800; font-size: 12px; letter-spacing: 0.02em;
+}
 .marque-texte { display: flex; flex-direction: column; line-height: 1.15; }
 .marque-nom { font-weight: 800; font-size: 15px; letter-spacing: -0.01em; }
 .marque-sous { font-size: 12px; color: var(--texte-2); font-weight: 500; }
@@ -188,6 +205,17 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 }
 .btn-icone:hover { color: var(--texte); background: var(--surface-2); border-color: var(--bordure-forte); }
 .btn-icone.danger:hover { color: var(--danger); background: var(--danger-doux); border-color: transparent; }
+
+/* En-tête aux couleurs du client (écrans publics) */
+.barre-marque { background: var(--marque); color: var(--sur-marque); border-bottom: none; height: 72px; }
+.barre-marque .marque { color: inherit; }
+.barre-marque .marque-sous { color: inherit; opacity: 0.8; }
+.barre-marque .marque-logo { width: 42px; height: 42px; background: #FFF; padding: 3px; }
+.barre-marque .marque-logo.logo-initiales { background: var(--sur-marque); color: var(--marque); }
+.barre-marque .btn-icone { background: transparent; color: inherit; border-color: color-mix(in srgb, currentColor 35%, transparent); }
+.barre-marque .btn-icone:hover { background: color-mix(in srgb, currentColor 12%, transparent); color: inherit; }
+.barre-marque .badge-connexion:not(.ok):not(.ko) { background: transparent; color: inherit; }
+
 
 /* ---------- Indicateur de connexion ---------- */
 .badge-connexion {
@@ -296,3 +324,128 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   .barre-sep, .barre-titre, .marque-sous { display: none; }
   .accueil { padding: 40px 16px; }
 }
+
+/* =====================================================================
+   Zones publicitaires du client (remplies par /shared/marque.js)
+   ===================================================================== */
+/* Scène de rotation : tous les messages occupent la même cellule et
+   s'enchaînent avec la transition choisie (<body data-transition>). */
+.pub-scene { display: grid; flex: 1; min-height: 0; }
+.pub-item {
+  grid-area: 1 / 1;
+  display: flex; align-items: center; gap: 16px;
+  min-width: 0; min-height: 0;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.7s;
+}
+.pub-item.actif { opacity: 1; visibility: visible; transform: none; transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+.pub-texte { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pub-texte strong { font-weight: 700; }
+
+/* Glissement : le message entre par la droite, l'ancien sort par la gauche */
+[data-transition="glissement"] .pub-item { transform: translateX(48px); }
+[data-transition="glissement"] .pub-item.sortant { transform: translateX(-48px); }
+[data-transition="glissement"] .pub-item.actif { transform: none; }
+/* Zoom : apparition agrandie + lent zoom sur les images (effet « Ken Burns ») */
+[data-transition="zoom"] .pub-item { transform: scale(0.92); }
+[data-transition="zoom"] .pub-item.sortant { transform: scale(1.06); }
+[data-transition="zoom"] .pub-item.actif { transform: none; }
+[data-transition="zoom"] .pub-item.actif .pub-media img { animation: ken-burns var(--duree, 8s) ease-out both; }
+@keyframes ken-burns { from { transform: scale(1); } to { transform: scale(1.12); } }
+/* Aucune animation */
+[data-transition="aucune"] .pub-item, [data-transition="aucune"] .pub-item.actif { transition: none; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .pub-item, .pub-item.actif { transition: none !important; transform: none !important; }
+  .pub-media img { animation: none !important; }
+}
+
+/* Visuel : image, GIF animé ou vidéo */
+.pub-media { overflow: hidden; border-radius: var(--rayon); background: #000; }
+.pub-media img, .pub-media video { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.pub-points { display: flex; gap: 6px; }
+.pub-points i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.3; }
+.pub-points i.actif { opacity: 1; }
+
+/* Bandeau haut : couleur principale du client */
+.pub-haut {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px 24px;
+  /* teinte légèrement assombrie pour se distinguer de l'en-tête */
+  background: color-mix(in srgb, var(--marque) 82%, #000); color: var(--sur-marque);
+}
+.pub-haut .pub-texte { flex-direction: row; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.pub-haut .pub-texte span { opacity: 0.88; }
+
+/* Panneau latéral : visuel + texte */
+.pub-lateral {
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 20px;
+  border-radius: var(--rayon-l);
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-top: 5px solid var(--marque);
+  overflow: hidden;
+}
+.pub-lateral .pub-item { flex-direction: column; align-items: stretch; }
+.pub-lateral .pub-media { aspect-ratio: 16 / 9; max-height: 280px; }
+.pub-lateral .media-seul .pub-media { max-height: none; }
+.pub-lateral .pub-texte strong { font-size: 20px; color: var(--texte); }
+.pub-lateral .pub-texte span { color: var(--texte-2); }
+.pub-lateral .pub-points { color: var(--marque); justify-content: center; }
+
+/* Bandeau défilant en pied d'écran : couleur secondaire du client */
+.pub-bas {
+  overflow: hidden;
+  white-space: nowrap;
+  background: var(--marque-2); color: var(--sur-marque-2);
+  font-size: 16px;
+}
+.defilant-piste { display: inline-flex; animation: defiler linear infinite; }
+.defilant-groupe { display: inline-flex; }
+.defilant-item { padding: 12px 0; }
+.defilant-item::after { content: '•'; margin: 0 28px; opacity: 0.5; }
+@keyframes defiler { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .defilant-piste { animation: none; } }
+
+/* Écran de veille publicitaire (borne inactive) */
+.veille {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column;
+  background: color-mix(in srgb, var(--marque) 22%, #05070B);
+  color: #FFF;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.6s ease, visibility 0s linear 0.6s;
+  cursor: pointer;
+}
+.veille.visible { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.6s ease; }
+.veille-entete {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 28px;
+  background: var(--marque); color: var(--sur-marque);
+  font-size: 20px; font-weight: 800;
+}
+.veille-entete .marque-logo { width: 44px; height: 44px; background: #FFF; padding: 3px; }
+.veille-entete .logo-initiales { background: var(--sur-marque); color: var(--marque); font-size: 13px; }
+.veille-scene { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 4vh 5vw 2vh; min-height: 0; }
+.veille-scene .pub-scene { flex: 1; }
+.veille-scene .pub-item { flex-direction: column; align-items: stretch; justify-content: center; gap: 3vh; }
+.veille-scene .pub-media { flex: 1; min-height: 0; border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45); }
+.veille-scene .pub-media img, .veille-scene .pub-media video { object-fit: contain; background: #000; }
+.veille-scene .pub-item:not(:has(.pub-media)) { align-items: center; text-align: center; }
+.veille-scene .pub-texte { text-align: center; align-items: center; }
+.veille-scene .pub-texte strong { font-size: clamp(28px, 4.2vw, 64px); letter-spacing: -0.02em; line-height: 1.1; }
+.veille-scene .pub-texte span { font-size: clamp(18px, 2vw, 30px); opacity: 0.85; max-width: 1100px; }
+.veille-scene .pub-points { justify-content: center; color: #FFF; }
+.veille-scene .pub-points i { width: 10px; height: 10px; }
+.veille-appel {
+  margin: 0 auto 4vh;
+  padding: 16px 32px;
+  border-radius: 999px;
+  background: #FFF; color: var(--marque);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font-size: clamp(18px, 2vw, 26px); font-weight: 700;
+  animation: pulsation 2.4s ease-in-out infinite;
+}
+@keyframes pulsation { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { .veille-appel { animation: none; } }
