@@ -23,3 +23,9 @@ set HOST=0.0.0.0
 
 REM --- Delai avant abandon d'un ticket appele non cloture (minutes, RG6) ---
 set DELAI_ABANDON_MIN=5
+
+REM --- Mot de passe initial de l'administration (/admin/) ---
+REM  Facultatif : sert UNIQUEMENT au premier demarrage, s'il n'existe pas
+REM  encore de mot de passe. Laissez vide et utilisez plutot
+REM  7-mot-de-passe-admin.bat (rien n'est alors ecrit en clair ici).
+set ADMIN_MOT_DE_PASSE=

@@ -10,9 +10,17 @@ const { NB_APPELS_RECENTS, DELAI_ABANDON_MIN } = require('../config');
  * font que traduire HTTP ⇄ appels de la couche métier (GestionnaireFile /
  * Statistiques). Aucune requête SQL, aucune règle de gestion ici.
  *
+ * Les routes d'administration (référentiel, habilitations, statistiques,
+ * purge, personnalisation, médias) exigent une session administrateur
+ * (`admin`) ; celles de la borne, du poste agent et de l'écran mural
+ * restent ouvertes.
+ *
  * @param {object} ctx  contexte assemblé (voir contexte.js)
+ * @param {object} [opts]
+ * @param {import('express').RequestHandler} [opts.admin] middleware d'accès administrateur
  */
-function creerRoutes(ctx) {
+function creerRoutes(ctx, opts = {}) {
+  const admin = opts.admin || ((req, res, next) => next());
   const { gestionnaire, statistiques, dao, marque } = ctx;
   const r = express.Router();
 
@@ -44,20 +52,20 @@ function creerRoutes(ctx) {
   }));
 
   // --- Admin CRUD : Services ---
-  r.post('/services', geree(async (req, res) => {
+  r.post('/services', admin, geree(async (req, res) => {
     const { code, libelle, dureeCible } = req.body || {};
     if (!code || !libelle) return res.status(400).json({ erreur: 'code et libelle requis' });
     await dao.serviceDAO.creer(code, libelle, dureeCible || 5);
     res.status(201).json({ ok: true });
   }));
 
-  r.put('/services/:code', geree(async (req, res) => {
+  r.put('/services/:code', admin, geree(async (req, res) => {
     const { libelle, dureeCible } = req.body || {};
     await dao.serviceDAO.modifier(req.params.code, libelle, dureeCible);
     res.json({ ok: true });
   }));
 
-  r.delete('/services/:code', geree(async (req, res) => {
+  r.delete('/services/:code', admin, geree(async (req, res) => {
     try {
       await dao.serviceDAO.supprimer(req.params.code);
       res.json({ ok: true });
@@ -70,20 +78,20 @@ function creerRoutes(ctx) {
   }));
 
   // --- Admin CRUD : Agents ---
-  r.post('/agents', geree(async (req, res) => {
+  r.post('/agents', admin, geree(async (req, res) => {
     const { matricule, nom } = req.body || {};
     if (!matricule || !nom) return res.status(400).json({ erreur: 'matricule et nom requis' });
     await dao.agentDAO.creer(matricule, nom);
     res.status(201).json({ ok: true });
   }));
 
-  r.put('/agents/:matricule', geree(async (req, res) => {
+  r.put('/agents/:matricule', admin, geree(async (req, res) => {
     const { nom } = req.body || {};
     await dao.agentDAO.modifier(req.params.matricule, nom);
     res.json({ ok: true });
   }));
 
-  r.delete('/agents/:matricule', geree(async (req, res) => {
+  r.delete('/agents/:matricule', admin, geree(async (req, res) => {
     try {
       await dao.agentDAO.supprimer(req.params.matricule);
       res.json({ ok: true });
@@ -96,20 +104,20 @@ function creerRoutes(ctx) {
   }));
 
   // --- Admin CRUD : Guichets ---
-  r.post('/guichets', geree(async (req, res) => {
+  r.post('/guichets', admin, geree(async (req, res) => {
     const { numero, etat } = req.body || {};
     if (!numero) return res.status(400).json({ erreur: 'numero requis' });
     await dao.guichetDAO.creer(numero, etat || 'ouvert');
     res.status(201).json({ ok: true });
   }));
 
-  r.put('/guichets/:numero', geree(async (req, res) => {
+  r.put('/guichets/:numero', admin, geree(async (req, res) => {
     const { etat } = req.body || {};
     await dao.guichetDAO.modifier(req.params.numero, etat);
     res.json({ ok: true });
   }));
 
-  r.delete('/guichets/:numero', geree(async (req, res) => {
+  r.delete('/guichets/:numero', admin, geree(async (req, res) => {
     try {
       await dao.guichetDAO.supprimer(req.params.numero);
       res.json({ ok: true });
@@ -122,12 +130,12 @@ function creerRoutes(ctx) {
   }));
 
   // --- Admin : Habilitations (agent ↔ service, RG3) ---
-  r.get('/habilitations', geree(async (req, res) => {
+  r.get('/habilitations', admin, geree(async (req, res) => {
     const paires = await dao.habilitationDAO.toutes();
     res.json(paires.map((h) => ({ matricule: h.matricule, codeService: h.code_service })));
   }));
 
-  r.post('/habilitations', geree(async (req, res) => {
+  r.post('/habilitations', admin, geree(async (req, res) => {
     const { matricule, codeService } = req.body || {};
     if (!matricule || !codeService) {
       return res.status(400).json({ erreur: 'matricule et codeService requis' });
@@ -143,7 +151,7 @@ function creerRoutes(ctx) {
     }
   }));
 
-  r.delete('/habilitations/:matricule/:codeService', geree(async (req, res) => {
+  r.delete('/habilitations/:matricule/:codeService', admin, geree(async (req, res) => {
     await dao.habilitationDAO.retirer(req.params.matricule, req.params.codeService);
     res.json({ ok: true });
   }));
@@ -202,13 +210,13 @@ function creerRoutes(ctx) {
   }));
 
   // --- Traitements automatiques (exposés pour supervision / démonstration) ---
-  r.post('/abandons', geree(async (req, res) => {
+  r.post('/abandons', admin, geree(async (req, res) => {
     const delai = Number((req.body && req.body.delaiMin) || DELAI_ABANDON_MIN);
     const nb = await gestionnaire.marquerAbandons(delai);
     res.json({ nb });
   }));
 
-  r.get('/stats', geree(async (req, res) => {
+  r.get('/stats', admin, geree(async (req, res) => {
     const { date } = req.query;
     res.json(await statistiques.calculerRapport(date));
   }));
@@ -219,28 +227,29 @@ function creerRoutes(ctx) {
     res.json(marque.lire());
   }));
 
-  r.put('/marque', geree(async (req, res) => {
+  r.put('/marque', admin, geree(async (req, res) => {
     res.json(marque.enregistrer(req.body));
   }));
 
-  r.delete('/marque', geree(async (req, res) => {
+  r.delete('/marque', admin, geree(async (req, res) => {
     res.json(marque.reinitialiser());
   }));
 
   // Envoi d'un média (corps brut, type MIME dans Content-Type) → { url, type }.
   r.post(
     '/medias',
+    admin,
     express.raw({ type: ['image/*', 'video/*'], limit: '50mb' }),
     geree(async (req, res) => {
       res.status(201).json(marque.ajouterMedia(req.body, req.get('Content-Type')));
     })
   );
 
-  r.get('/marque/modeles', geree(async (req, res) => {
+  r.get('/marque/modeles', admin, geree(async (req, res) => {
     res.json(marque.modeles());
   }));
 
-  r.get('/marque/modeles/:id', geree(async (req, res) => {
+  r.get('/marque/modeles/:id', admin, geree(async (req, res) => {
     res.json(marque.modele(req.params.id));
   }));
 

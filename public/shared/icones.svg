@@ -97,6 +97,16 @@
     <path d="M9 16.5v4M12.5 16.5v4"/>
   </symbol>
 
+  <!-- Sécurité -->
+  <symbol id="i-cadenas" viewBox="0 0 24 24">
+    <rect x="4.5" y="10.5" width="15" height="10.5" rx="2"/>
+    <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3M12 14.5v2.5"/>
+  </symbol>
+  <symbol id="i-sortie" viewBox="0 0 24 24">
+    <path d="M14 4.5h4a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5h-4"/>
+    <path d="M10 16.5L5.5 12 10 7.5M5.5 12H15"/>
+  </symbol>
+
   <!-- Thème -->
   <symbol id="i-soleil" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="4"/>

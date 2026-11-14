@@ -1,0 +1,21 @@
+/* Page de connexion à l'administration */
+body.connexion { display: flex; flex-direction: column; }
+.connexion-zone { flex: 1; display: grid; place-items: center; padding: 40px 16px; }
+.connexion-carte {
+  width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 32px;
+  box-shadow: var(--ombre-2);
+}
+.connexion-carte h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.connexion-desc { margin: -6px 0 4px; color: var(--texte-2); font-size: 14px; }
+.connexion-champ { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--texte-2); }
+.connexion-champ .champ { height: 44px; font-size: 15px; }
+.connexion-msg { margin: 0; min-height: 20px; color: var(--danger); font-size: 14px; font-weight: 600; }
+.connexion-retour { align-self: center; font-size: 13px; color: var(--texte-2); }
+.connexion-liste { margin: 0; padding-left: 18px; color: var(--texte-2); font-size: 14px; display: grid; gap: 6px; }
+.connexion-liste code, .connexion-desc code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px;
+  background: var(--surface-2); border: 1px solid var(--bordure); border-radius: 4px; padding: 1px 5px;
+}
+.pastille-alerte { background: var(--alerte-doux); color: var(--alerte); }

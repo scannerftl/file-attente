@@ -7,8 +7,9 @@
     "start": "node server/server.js",
     "dev": "node --watch server/server.js",
     "init-db": "node server/db/init-db.js",
-    "test": "node --test test/recette.test.js test/marque.test.js",
-    "test:mysql": "node test/mysql-smoke.js"
+    "test": "node --test test/recette.test.js test/marque.test.js test/acces.test.js",
+    "test:mysql": "node test/mysql-smoke.js",
+    "admin:mot-de-passe": "node server/outils/mot-de-passe-admin.js"
   },
   "engines": {
     "node": ">=18"

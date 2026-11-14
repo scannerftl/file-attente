@@ -25,6 +25,12 @@ module.exports = {
   // Personnalisation client (nom, logo, couleurs, messages publicitaires).
   // Fichier écrit depuis l'écran d'administration ; absent = modèle par défaut.
   CHEMIN_MARQUE: process.env.CHEMIN_MARQUE || path.join(__dirname, 'db', 'marque.json'),
+  // Administration : empreinte du mot de passe (jamais en clair).
+  // ADMIN_MOT_DE_PASSE, s'il est fourni, sert uniquement à créer le mot de
+  // passe au premier démarrage (il est ensuite modifiable depuis l'admin).
+  CHEMIN_ADMIN: process.env.CHEMIN_ADMIN || path.join(__dirname, 'db', 'admin.json'),
+  ADMIN_MOT_DE_PASSE: process.env.ADMIN_MOT_DE_PASSE || '',
+
   // Médias publicitaires envoyés (images, GIF animés, vidéos), servis sous /medias/.
   DOSSIER_MEDIAS: process.env.DOSSIER_MEDIAS || path.join(__dirname, 'db', 'medias'),
 

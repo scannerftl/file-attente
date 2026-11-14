@@ -146,8 +146,35 @@ API : `GET /api/marque`, `PUT /api/marque`, `DELETE /api/marque`, `POST /api/med
 (corps brut, type MIME en `Content-Type`),
 `GET /api/marque/modeles`, `GET /api/marque/modeles/:id`.
 
-> ⚠️ L'administration n'est pas protégée par mot de passe : limitez son accès au réseau
-> interne de l'agence.
+## 🔐 Accès à l'administration
+
+L'administration (`/admin/` et les routes d'API correspondantes : référentiel,
+habilitations, statistiques, purge, personnalisation, envoi de médias) est **protégée
+par mot de passe**. La borne, le poste agent et l'écran mural restent accessibles sans
+mot de passe.
+
+**Premier mot de passe** — au premier démarrage, il n'en existe aucun ; trois façons de
+le créer :
+
+1. ouvrir `http://localhost:3000/admin/` **sur le serveur lui-même** : la page propose
+   de le créer (refusé depuis un autre poste) ;
+2. lancer `npm run admin:mot-de-passe` (ou `deploiement\7-mot-de-passe-admin.bat`) sur
+   le serveur : saisie masquée, deux fois ;
+3. définir `ADMIN_MOT_DE_PASSE` au premier démarrage (ignoré ensuite).
+
+Ensuite, il se change dans **Administration → Sécurité** (les autres sessions sont alors
+déconnectées). En cas d'oubli, relancer la commande 2 sur le serveur : le nouveau mot de
+passe s'applique sans redémarrage.
+
+| Mesure | Détail |
+| --- | --- |
+| Stockage | Empreinte scrypt + sel aléatoire dans `server/db/admin.json` (`CHEMIN_ADMIN`), jamais en clair, hors du dépôt git |
+| Session | Cookie `HttpOnly`, `SameSite=Strict`, expiration après 8 h d'inactivité ; un redémarrage du serveur déconnecte |
+| Essais en série | Après 5 échecs depuis une même adresse : attente de 1 min, doublée à chaque nouvel échec |
+| Requêtes d'autres sites | Les modifications venant d'une autre origine sont refusées |
+
+> Le trafic n'est pas chiffré en HTTP simple : sur un réseau partagé, placez le serveur
+> derrière un proxy HTTPS (le cookie passe alors en `Secure`).
 
 ## 🚀 Démarrage rapide
 
@@ -221,6 +248,8 @@ Copier `.env.example` en `.env` (ou exporter les variables). Principales options
 | `PORT` | `3000` | Port HTTP |
 | `CHEMIN_MARQUE` | `server/db/marque.json` | Fichier de la personnalisation client publiée |
 | `DOSSIER_MEDIAS` | `server/db/medias/` | Images, GIF et vidéos publicitaires envoyés |
+| `CHEMIN_ADMIN` | `server/db/admin.json` | Empreinte du mot de passe de l'administration |
+| `ADMIN_MOT_DE_PASSE` | — | Mot de passe créé au premier démarrage s'il n'en existe aucun |
 | `DB_DRIVER` | `sqlite` | `sqlite` (dev) ou `mysql` (cible) |
 | `DELAI_ABANDON_MIN` | `5` | Délai (min) avant qu'un ticket appelé non clôturé soit abandonné |
 | `MYSQL_*` | — | Hôte, port, user, mot de passe, base (si `DB_DRIVER=mysql`) |
@@ -267,14 +296,17 @@ npm test
 ```
 
 `test/recette.test.js` implémente les tests **T1 → T8** (sur SQLite en mémoire) ;
-`test/marque.test.js` couvre la personnalisation client (validation, modèles, médias, animations).
+`test/marque.test.js` couvre la personnalisation client (validation, modèles, médias, animations) ;
+`test/acces.test.js` couvre l'accès administrateur (mot de passe, sessions, routes
+ouvertes et protégées, limitation des essais).
 Pour vérifier l'adaptateur MySQL, voir `npm run test:mysql` ci-dessus.
 
 ## 🖥️ Déploiement Windows
 
 Des scripts prêts à l'emploi et un guide pas à pas sont fournis dans
 [`deploiement/`](deploiement/) (installation des dépendances, initialisation MySQL,
-ouverture du pare-feu, démarrage, installation en service).
+ouverture du pare-feu, démarrage, installation en service, mot de passe de
+l'administration).
 
 ## 📄 Licence
 

@@ -114,6 +114,16 @@ Le service `FileAttente` démarre alors automatiquement avec Windows.
 Commandes : `nssm restart FileAttente`, `nssm stop FileAttente`,
 `nssm remove FileAttente`.
 
+### 9) Créer le mot de passe de l'administration
+L'administration (`/admin/`) est protégée par mot de passe. Au premier démarrage,
+il n'en existe aucun. **Sur le serveur**, au choix :
+- ouvrez <http://localhost:3000/admin/> : la page propose de créer le mot de passe
+  (cette création est refusée depuis un autre poste) ;
+- ou double-cliquez sur **`deploiement\7-mot-de-passe-admin.bat`** (saisie masquée).
+
+Il se change ensuite dans **Administration → Sécurité**. En cas d'oubli, relancez
+`7-mot-de-passe-admin.bat` sur le serveur : c'est immédiat, sans redémarrage.
+
 ---
 
 ## Côté clients (bornes, postes, écrans)
@@ -160,6 +170,9 @@ http://192.168.x.x:3000/poste/?matricule=A001&guichet=1
   restreindre, ajustez `HOST` dans `config.env.bat`.
 - MySQL n'a pas besoin d'être exposé au réseau : il reste sur `localhost`, seul
   Node y accède.
+- **Administration** : choisissez un mot de passe solide (étape 9). Il est stocké
+  sous forme d'empreinte dans `server\db\admin.json` ; ne laissez pas
+  `ADMIN_MOT_DE_PASSE` rempli dans `config.env.bat` après le premier démarrage.
 
 ---
 
@@ -187,5 +200,6 @@ http://192.168.x.x:3000/poste/?matricule=A001&guichet=1
 3-tester-mysql.bat                   (facultatif)
 4-ouvrir-pare-feu.bat                (EN ADMIN, une fois)
 5-demarrer.bat        OU     6-installer-service.bat (EN ADMIN)
+7-mot-de-passe-admin.bat             (sur le serveur, une fois)
    → clients : http://IP-SERVEUR:3000/borne  |  /poste  |  /mural
 ```

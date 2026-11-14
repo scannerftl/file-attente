@@ -33,6 +33,46 @@ const { creerContexte } = require('./contexte');
 const { creerRoutes } = require('./api/routes');
 const { brancherWebSocket } = require('./ws/notificationWS');
 const { demarrerJobs } = require('./jobs/planificateur');
+const { creerAuth } = require('./api/auth');
+const AccesAdmin = require('./securite/AccesAdmin');
+
+/**
+ * Application Express : API + fichiers des IHM.
+ * Séparée du démarrage pour pouvoir être testée sans écouter de port fixe.
+ *
+ * @param {object} ctx  contexte assemblé (voir contexte.js)
+ * @param {AccesAdmin} acces  mot de passe et sessions de l'administration
+ * @param {string} dossierMedias  dossier des médias publicitaires envoyés
+ */
+function creerApp(ctx, acces, dossierMedias) {
+  const app = express();
+  const auth = creerAuth(acces);
+  // Limite relevée : la personnalisation client peut contenir des images (logo, visuels).
+  app.use(express.json({ limit: '12mb' }));
+  app.use('/api/admin', auth.routes);
+  app.use('/api', creerRoutes(ctx, { admin: auth.exiger }));
+
+  // Médias publicitaires envoyés depuis l'administration. Un SVG ouvert
+  // directement ne peut exécuter aucun script (CSP « sandbox »).
+  app.use('/medias', express.static(dossierMedias, {
+    maxAge: '7d',
+    immutable: true,
+    setHeaders: (res) => {
+      res.set('X-Content-Type-Options', 'nosniff');
+      res.set('Content-Security-Policy', "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox");
+    },
+  }));
+
+  // Pages d'administration : réservées aux sessions connectées
+  // (sauf la page de connexion elle-même).
+  app.use('/admin', auth.protegerPages);
+
+  // Couche présentation (IHM) servie en statique.
+  const racinePublic = path.join(__dirname, '..', 'public');
+  app.use(express.static(racinePublic));
+  app.get('/', (req, res) => res.sendFile(path.join(racinePublic, 'index.html')));
+  return app;
+}
 
 async function demarrer() {
   // 1) Assemblage des couches selon le SGBD configuré.
@@ -45,27 +85,12 @@ async function demarrer() {
     dossierMedias: config.DOSSIER_MEDIAS,
   });
 
-  // 2) Application Express : API + fichiers des IHM.
-  const app = express();
-  // Limite relevée : la personnalisation client peut contenir des images (logo, visuels).
-  app.use(express.json({ limit: '12mb' }));
-  app.use('/api', creerRoutes(ctx));
-
-  // Médias publicitaires envoyés depuis l'administration. Un SVG ouvert
-  // directement ne peut exécuter aucun script (CSP « sandbox »).
-  app.use('/medias', express.static(config.DOSSIER_MEDIAS, {
-    maxAge: '7d',
-    immutable: true,
-    setHeaders: (res) => {
-      res.set('X-Content-Type-Options', 'nosniff');
-      res.set('Content-Security-Policy', "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox");
-    },
-  }));
-
-  // Couche présentation (les 3 IHM) servie en statique.
-  const racinePublic = path.join(__dirname, '..', 'public');
-  app.use(express.static(racinePublic));
-  app.get('/', (req, res) => res.sendFile(path.join(racinePublic, 'index.html')));
+  // 2) Accès administrateur + application Express.
+  const acces = new AccesAdmin({
+    chemin: config.CHEMIN_ADMIN,
+    motDePasseInitial: config.ADMIN_MOT_DE_PASSE,
+  });
+  const app = creerApp(ctx, acces, config.DOSSIER_MEDIAS);
 
   // 3) Serveur HTTP + WebSocket (push / Observateur).
   const serveur = http.createServer(app);
@@ -84,6 +109,13 @@ async function demarrer() {
     ];
     for (const ip of adressesLAN()) {
       lignes.push(`  Accès réseau: http://${ip}:${config.PORT}/  (borne | poste | mural)`);
+    }
+    if (!acces.estConfigure()) {
+      lignes.push(
+        '  ⚠ Administration : aucun mot de passe défini.',
+        `    Ouvrez http://localhost:${config.PORT}/admin/ SUR CE SERVEUR pour le créer,`,
+        '    ou lancez : npm run admin:mot-de-passe'
+      );
     }
     lignes.push('======================================================');
     console.log(lignes.join('\n'));
@@ -111,4 +143,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { demarrer };
+module.exports = { demarrer, creerApp };

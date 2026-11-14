@@ -20,6 +20,7 @@
     <span class="barre-titre">Administration</span>
     <div class="barre-actions">
       <a href="/" class="btn btn-secondaire btn-s"><svg class="ico ico-s"><use href="/shared/icones.svg#i-retour"/></svg> Accueil</a>
+      <button id="btn-deconnexion" class="btn btn-secondaire btn-s" type="button" title="Se déconnecter de l'administration"><svg class="ico ico-s"><use href="/shared/icones.svg#i-sortie"/></svg> Déconnexion</button>
       <button id="btn-theme" class="btn-icone" type="button"></button>
     </div>
   </header>
@@ -246,8 +247,24 @@
         <button id="btn-purge" class="btn btn-danger" type="button">Lancer la purge</button>
       </div>
     </section>
+
+    <!-- Sécurité : changement du mot de passe administrateur -->
+    <section class="carte bloc" id="securite">
+      <div class="bloc-entete">
+        <h2>Sécurité</h2>
+        <p class="bloc-desc">Mot de passe de l'administration. Le changer déconnecte les autres sessions ouvertes.</p>
+      </div>
+      <form id="form-mdp" class="mdp-form" novalidate>
+        <label class="champ-libelle">Mot de passe actuel <input id="mdp-actuel" class="champ" type="password" autocomplete="current-password" required></label>
+        <label class="champ-libelle">Nouveau mot de passe <input id="mdp-nouveau" class="champ" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label class="champ-libelle">Confirmation <input id="mdp-confirmation" class="champ" type="password" autocomplete="new-password" minlength="8" required></label>
+        <button class="btn btn-primaire" type="submit">Changer le mot de passe</button>
+      </form>
+      <p id="mdp-statut" class="perso-statut mdp-statut" role="status"></p>
+    </section>
   </main>
 
+  <script src="/admin/admin-session.js"></script>
   <script src="/shared/api.js"></script>
   <script src="/admin/admin.js"></script>
   <script src="/admin/admin-marque.js"></script>

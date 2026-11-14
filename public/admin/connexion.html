@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Connexion — Administration</title>
+  <link rel="icon" type="image/svg+xml" href="/shared/logo.svg" />
+  <link rel="stylesheet" href="/shared/style.css" />
+  <link rel="stylesheet" href="/admin/connexion.css" />
+  <script src="/shared/theme.js"></script>
+  <script src="/shared/marque.js"></script>
+</head>
+<body class="connexion">
+  <header class="barre">
+    <a class="marque" href="/">
+      <span class="marque-logo" data-marque="logo"><img src="/shared/logo.svg" alt="" /></span>
+      <span class="marque-texte"><span class="marque-nom" data-marque="nom">Agence</span><span class="marque-sous">Gestion de file d'attente</span></span>
+    </a>
+    <div class="barre-actions">
+      <button id="btn-theme" class="btn-icone" type="button"></button>
+    </div>
+  </header>
+
+  <main class="connexion-zone">
+    <!-- Connexion -->
+    <form id="form-connexion" class="carte connexion-carte cachee" novalidate>
+      <span class="pastille"><svg class="ico"><use href="/shared/icones.svg#i-cadenas"/></svg></span>
+      <h1>Administration</h1>
+      <p class="connexion-desc">Saisissez le mot de passe administrateur pour continuer.</p>
+      <label class="connexion-champ">Mot de passe
+        <input id="mdp" class="champ" type="password" autocomplete="current-password" required autofocus />
+      </label>
+      <p id="msg-connexion" class="connexion-msg" role="alert"></p>
+      <button class="btn btn-primaire btn-l" type="submit">Se connecter</button>
+      <a class="connexion-retour" href="/">Retour à l'accueil</a>
+    </form>
+
+    <!-- Premier démarrage, depuis le serveur : création du mot de passe -->
+    <form id="form-creation" class="carte connexion-carte cachee" novalidate>
+      <span class="pastille"><svg class="ico"><use href="/shared/icones.svg#i-cadenas"/></svg></span>
+      <h1>Créer le mot de passe</h1>
+      <p class="connexion-desc">Premier accès : choisissez le mot de passe qui protégera l'administration (8 caractères minimum).</p>
+      <label class="connexion-champ">Mot de passe
+        <input id="mdp-nouveau" class="champ" type="password" autocomplete="new-password" minlength="8" required />
+      </label>
+      <label class="connexion-champ">Confirmation
+        <input id="mdp-confirmation" class="champ" type="password" autocomplete="new-password" minlength="8" required />
+      </label>
+      <p id="msg-creation" class="connexion-msg" role="alert"></p>
+      <button class="btn btn-primaire btn-l" type="submit">Créer et se connecter</button>
+    </form>
+
+    <!-- Premier démarrage, depuis un autre poste : marche à suivre -->
+    <div id="bloc-non-configure" class="carte connexion-carte cachee">
+      <span class="pastille pastille-alerte"><svg class="ico"><use href="/shared/icones.svg#i-cadenas"/></svg></span>
+      <h1>Mot de passe non défini</h1>
+      <p class="connexion-desc">Pour des raisons de sécurité, le premier mot de passe se crée <strong>sur le serveur lui-même</strong> :</p>
+      <ul class="connexion-liste">
+        <li>ouvrez <code>http://localhost:<span id="port">3000</span>/admin/</code> sur le serveur ;</li>
+        <li>ou lancez <code>deploiement\7-mot-de-passe-admin.bat</code> (ou <code>npm run admin:mot-de-passe</code>).</li>
+      </ul>
+      <a class="btn btn-secondaire" href="/">Retour à l'accueil</a>
+    </div>
+  </main>
+
+  <script src="/admin/connexion.js"></script>
+</body>
+</html>
