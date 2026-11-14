@@ -10,13 +10,19 @@ const params = new URLSearchParams(location.search);
 let matricule = params.get('matricule') || localStorage.getItem('matricule') || 'A001';
 let guichet = Number(params.get('guichet') || localStorage.getItem('guichet') || 1);
 let ticketEnCours = null;
+let libelles = {};
+let agentsConnus = [];
 
 async function initConfig() {
-  const [agents, guichets] = await Promise.all([API.get('/api/agents'), API.get('/api/guichets')]);
+  const [agents, guichets, services] = await Promise.all([
+    API.get('/api/agents'), API.get('/api/guichets'), API.get('/api/services'),
+  ]);
+  agentsConnus = agents;
+  libelles = Object.fromEntries(services.map((s) => [s.code, s.libelle]));
 
   const selA = $('#sel-agent');
   selA.innerHTML = agents
-    .map((a) => `<option value="${a.matricule}">${a.matricule} — ${a.nom} (${a.services.join(', ')})</option>`)
+    .map((a) => `<option value="${a.matricule}">${a.nom} · ${a.matricule}</option>`)
     .join('');
   selA.value = matricule;
 
@@ -24,7 +30,7 @@ async function initConfig() {
   selG.innerHTML = guichets.map((g) => `<option value="${g.numero}">Guichet ${g.numero}</option>`).join('');
   selG.value = String(guichet);
 
-  selA.onchange = () => { matricule = selA.value; localStorage.setItem('matricule', matricule); rafraichir(); };
+  selA.onchange = () => { matricule = selA.value; localStorage.setItem('matricule', matricule); majTitre(); rafraichir(); };
   selG.onchange = () => {
     guichet = Number(selG.value);
     localStorage.setItem('guichet', String(guichet));
@@ -35,6 +41,8 @@ async function initConfig() {
 
 function majTitre() {
   $('#titre-guichet').textContent = 'Guichet ' + guichet;
+  const a = agentsConnus.find((x) => x.matricule === matricule);
+  $('#nom-agent').textContent = a ? [a.nom, (a.services || []).join(', ')].filter(Boolean).join(' · ') : '';
 }
 
 async function rafraichir() {
@@ -54,12 +62,14 @@ function afficherFile(file) {
   const ul = $('#file');
   ul.innerHTML = '';
   $('#file-vide').classList.toggle('cachee', file.length > 0);
+  $('#file-compte').textContent = file.length;
   for (const t of file) {
     const li = document.createElement('li');
     li.innerHTML =
+      `<span class="pastille"><svg class="ico"><use href="/shared/icones.svg#${iconeService(t.codeService)}"/></svg></span>` +
       `<span class="num">${String(t.numero).padStart(3, '0')}</span>` +
-      `<span class="svc">${t.codeService}</span>` +
-      `<span class="heure">${heureCourte(t.heurePrise)}</span>`;
+      `<span class="svc">${libelles[t.codeService] || t.codeService}</span>` +
+      `<span class="heure"><svg class="ico ico-s"><use href="/shared/icones.svg#i-horloge"/></svg>${heureCourte(t.heurePrise)}</span>`;
     ul.appendChild(li);
   }
 }
@@ -69,11 +79,13 @@ function afficherEnCours(t) {
   const div = $('#en-cours');
   const btn = $('#btn-cloturer');
   if (t) {
-    div.textContent = `Ticket ${String(t.numero).padStart(3, '0')} — ${t.codeService}`;
+    div.querySelector('.en-cours-num').textContent = String(t.numero).padStart(3, '0');
+    div.querySelector('.en-cours-svc').textContent = libelles[t.codeService] || t.codeService;
     div.classList.remove('vide');
     btn.disabled = false;
   } else {
-    div.textContent = 'Aucun ticket en cours';
+    div.querySelector('.en-cours-num').textContent = '—';
+    div.querySelector('.en-cours-svc').textContent = 'Aucun ticket en cours';
     div.classList.add('vide');
     btn.disabled = true;
   }
@@ -128,7 +140,7 @@ connecterTempsReel(
   () => rafraichir(),
   (etat) => {
     badge.className = 'badge-connexion ' + (etat === 'ok' ? 'ok' : 'ko');
-    badge.textContent = etat === 'ok' ? 'temps réel' : 'polling';
+    badge.textContent = etat === 'ok' ? 'Temps réel' : 'Reconnexion…';
   },
   () => rafraichir()
 );

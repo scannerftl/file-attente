@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>Logo — File d'attente</title>
+  <rect width="64" height="64" rx="14" fill="#14285A"/>
+  <path d="M18 20H46a4 4 0 0 1 4 4v4a4 4 0 0 0 0 8v4a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4v-4a4 4 0 0 0 0-8v-4a4 4 0 0 1 4-4Z" fill="#FFFFFF"/>
+  <path d="M36 23.5V40.5" stroke="#14285A" stroke-width="1.6" stroke-dasharray="2.2 2.2" fill="none"/>
+  <path d="M20 28.5H30M20 35.5H27" stroke="#14285A" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+  <path d="M41 27.5L45.5 32L41 36.5" stroke="#D4A437" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

@@ -11,10 +11,13 @@ function afficherCourant(ticket, animer) {
   if (!ticket) {
     $('#num-courant').textContent = '—';
     $('#guichet-courant').textContent = "En attente d'appel";
+    $('#guichet-courant').classList.remove('actif');
     return;
   }
   $('#num-courant').textContent = pad(ticket.numero);
-  $('#guichet-courant').textContent = '→ GUICHET ' + (ticket.guichet ?? '?');
+  $('#guichet-courant').innerHTML =
+    `<svg class="ico"><use href="/shared/icones.svg#i-fleche"/></svg>Guichet ${ticket.guichet ?? '?'}`;
+  $('#guichet-courant').classList.add('actif');
   if (animer) {
     const el = $('#num-courant');
     el.classList.remove('flash');
@@ -26,9 +29,10 @@ function afficherCourant(ticket, animer) {
 function afficherRecents(recents) {
   const ul = $('#recents');
   ul.innerHTML = '';
+  $('#recents-vide').classList.toggle('cachee', recents.length > 0);
   for (const t of recents) {
     const li = document.createElement('li');
-    li.innerHTML = `<span>${pad(t.numero)}</span><span class="g">G${t.guichet ?? '?'}</span>`;
+    li.innerHTML = `<span>${pad(t.numero)}</span><span class="g">Guichet <strong>${t.guichet ?? '?'}</strong></span>`;
     ul.appendChild(li);
   }
 }
@@ -37,8 +41,18 @@ function afficherRecents(recents) {
 async function rechargerEtat(animer) {
   const etat = await API.get('/api/mural');
   afficherCourant(etat.courant, animer);
-  afficherRecents(etat.recents);
+  // Le premier des appels récents est l'appel courant : on ne le répète pas.
+  afficherRecents(etat.recents.slice(1));
 }
+
+/** Horloge de l'en-tête (heure + date du jour). */
+function majHorloge() {
+  const d = new Date();
+  $('#heure').textContent = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  $('#date').textContent = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+majHorloge();
+setInterval(majHorloge, 1000);
 
 const badge = $('#badge');
 connecterTempsReel(
@@ -51,7 +65,7 @@ connecterTempsReel(
   },
   (etat) => {
     badge.className = 'badge-connexion ' + (etat === 'ok' ? 'ok' : 'ko');
-    badge.textContent = etat === 'ok' ? 'temps réel' : 'polling';
+    badge.textContent = etat === 'ok' ? 'Temps réel' : 'Reconnexion…';
   },
   () => rechargerEtat(false).catch(() => {}) // repli polling 2 s
 );
